@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { Save, User, Mail, Phone, MapPin, Github, Linkedin, Globe, Lock, Bell, Upload, X, Dribbble } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useData } from "../../contexts/DataContext";
 
 export function Settings() {
