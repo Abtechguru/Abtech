@@ -8,6 +8,7 @@ import { ServicesSection } from "./ServicesSection";
 import { TestimonialsSection } from "./TestimonialsSection";
 import { ModernAbout } from "./ModernAbout";
 import { ModernContact } from "./ModernContact";
+import { CurrencyConverter } from "../ui/CurrencyConverter";
 import { useData } from "../../contexts/DataContext";
 
 export function ModernPortfolio() {
@@ -22,8 +23,10 @@ export function ModernPortfolio() {
         <meta property="og:description" content={profileData.bio} />
         <meta property="og:image" content={profileData.profilePhoto} />
       </Helmet>
+      
       <Sidebar />
-      <main className="lg:ml-72 transition-all duration-300">
+      
+      <main className="lg:ml-64 transition-all duration-300">
         <div className="mx-auto">
           <ModernHero />
           
@@ -31,6 +34,7 @@ export function ModernPortfolio() {
             <ProcessSection />
             <PricingSection />
             <ModernProjects />
+            <CurrencyConverter />
             <ServicesSection />
             <TestimonialsSection />
             <ModernAbout />
@@ -42,27 +46,27 @@ export function ModernPortfolio() {
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--blue-primary)] flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--blue-primary)] flex items-center justify-center text-white font-bold text-lg">
                     {profileData.fullName.charAt(0)}
                   </div>
-                  <span className="text-xl font-bold text-[var(--blue-dark)] tracking-tight">
+                  <span className="text-2xl font-black text-[var(--blue-dark)] tracking-tighter uppercase italic">
                     {profileData.fullName}
                   </span>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-8 text-sm font-bold text-[var(--muted-foreground)]">
+                <div className="flex flex-wrap justify-center gap-8 text-sm font-black uppercase tracking-widest text-[var(--muted-foreground)]">
                   <a href="#" className="hover:text-[var(--blue-primary)] transition-colors">Home</a>
-                  <a href="#projects" className="hover:text-[var(--blue-primary)] transition-colors">Projects</a>
+                  <a href="#projects" className="hover:text-[var(--blue-primary)] transition-colors text-[var(--blue-dark)]">Projects</a>
                   <a href="#about" className="hover:text-[var(--blue-primary)] transition-colors">About</a>
                   <a href="#contact" className="hover:text-[var(--blue-primary)] transition-colors">Contact</a>
                 </div>
               </div>
 
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-12 border-t border-[var(--border)]/50">
-                <p className="text-[var(--muted-foreground)] text-sm font-medium">
-                  © 2026 {profileData.fullName}. All rights reserved.
+                <p className="text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-widest">
+                  © 2026 {profileData.fullName}. Handcrafted with Excellence.
                 </p>
-                <div className="flex items-center gap-6 text-sm font-medium text-[var(--muted-foreground)]">
+                <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
                   <p>{profileData.location}</p>
                 </div>
               </div>

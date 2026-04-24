@@ -32,16 +32,26 @@ export function MediaUploader({
     }
   };
 
-  const processFiles = (fileList: File[]) => {
-    const newFiles: MediaFile[] = fileList.map((file) => ({
-      id: Date.now().toString() + Math.random(),
-      type: file.type.startsWith("image/") ? (file.name.toLowerCase().includes("logo") ? "logo" : "image") : "video",
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: formatFileSize(file.size)
-    }));
+  const processFiles = async (fileList: File[]) => {
+    const processedFiles: MediaFile[] = await Promise.all(
+      fileList.map((file) => {
+        return new Promise<MediaFile>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({
+              id: Date.now().toString() + Math.random(),
+              type: file.type.startsWith("image/") ? (file.name.toLowerCase().includes("logo") ? "logo" : "image") : "video",
+              url: reader.result as string,
+              name: file.name,
+              size: formatFileSize(file.size)
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      })
+    );
 
-    const updatedFiles = [...files, ...newFiles].slice(0, maxFiles);
+    const updatedFiles = [...files, ...processedFiles].slice(0, maxFiles);
     setFiles(updatedFiles);
     onFilesSelected(updatedFiles);
   };

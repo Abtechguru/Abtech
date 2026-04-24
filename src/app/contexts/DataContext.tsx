@@ -74,6 +74,16 @@ interface ProfileData {
   activeUsers: string;
 }
 
+interface Message {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 interface DataContextType {
   projects: Project[];
   services: Service[];
@@ -81,6 +91,7 @@ interface DataContextType {
   testimonials: Testimonial[];
   experience: Experience[];
   profileData: ProfileData;
+  messages: Message[];
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
@@ -89,6 +100,8 @@ interface DataContextType {
   deleteProject: (id: string) => Promise<{ error: any }>;
   incrementProjectView: (id: string) => Promise<void>;
   incrementProfileView: () => Promise<void>;
+  markMessageRead: (id: string) => Promise<void>;
+  deleteMessage: (id: string) => Promise<void>;
   setProfileData: (data: ProfileData) => Promise<{ error: any }>;
   sendMessage: (msg: { name: string; email: string; subject: string; message: string }) => Promise<{ error: any }>;
   login: (email: string, password: string) => Promise<{ error: any }>;
@@ -101,7 +114,7 @@ const DEFAULT_PROFILE: ProfileData = {
   fullName: "Lateef Abiodun",
   title: "AI-Powered Fullstack Developer",
   location: "Lagos, Nigeria",
-  email: "lateef@example.com",
+  email: "careernig24@gmail.com",
   phone: "+234 XXX XXX XXXX",
   bio: "Fullstack Engineer & Data Specialist crafting production-grade AI systems, fintech platforms, and scalable web applications.",
   github: "https://github.com/lateefabiodun",
@@ -120,6 +133,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [skills, setSkillsState] = useState<Skill[]>([]);
   const [testimonials, setTestimonialsState] = useState<Testimonial[]>([]);
   const [experience, setExperienceState] = useState<Experience[]>([]);
+  const [messages, setMessagesState] = useState<Message[]>([]);
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -242,15 +256,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           { data: servicesData },
           { data: skillsData },
           { data: testData },
-          { data: expData }
+          { data: expData },
+          { data: messagesData }
         ] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).single(),
           supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false }),
           supabase.from('services').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
           supabase.from('skills').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
           supabase.from('testimonials').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-          supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true })
+          supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
+          supabase.from('messages').select('*').eq('to_user_id', userId).order('created_at', { ascending: false })
         ]);
+
+        if (messagesData) {
+            setMessagesState(messagesData.map((m: any) => ({
+                id: m.id, name: m.name, email: m.email, subject: m.subject, message: m.message, isRead: m.is_read, createdAt: m.created_at
+            })));
+        }
 
         if (profile) {
           setProfileDataState({
@@ -457,6 +479,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const markMessageRead = async (id: string) => {
+    const { error } = await supabase.from('messages').update({ is_read: true }).eq('id', id);
+    if (!error) {
+      setMessagesState(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
+    }
+  };
+
+  const deleteMessage = async (id: string) => {
+    const { error } = await supabase.from('messages').delete().eq('id', id);
+    if (!error) {
+      setMessagesState(messages.filter(m => m.id !== id));
+    }
+  };
+
   const updateProfileData = async (data: ProfileData) => {
     if (!session?.user) return { error: "Not authenticated" };
     const { error } = await supabase
@@ -507,9 +543,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      projects, services, skills, testimonials, experience, profileData,
+      projects, services, skills, testimonials, experience, profileData, messages,
       isAuthenticated: !!session, isLoading, user: session?.user ?? null,
       addProject, updateProject, deleteProject, incrementProjectView, incrementProfileView,
+      markMessageRead, deleteMessage,
       setProfileData: updateProfileData, sendMessage, login, logout
     }}>
       {children}
