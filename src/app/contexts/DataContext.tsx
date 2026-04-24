@@ -149,7 +149,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      const { data: profile } = await supabase.from('profiles').select('*').limit(1).single();
+      const [
+        { data: profile },
+        { data: projectsData },
+        { data: servicesData },
+        { data: skillsData },
+        { data: testData },
+        { data: expData }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*').limit(1).single(),
+        supabase.from('projects').select('*, media (*)').order('created_at', { ascending: false }),
+        supabase.from('services').select('*').order('display_order', { ascending: true }),
+        supabase.from('skills').select('*').order('display_order', { ascending: true }),
+        supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
+        supabase.from('experience').select('*').order('display_order', { ascending: true })
+      ]);
+
       if (profile) {
         setProfileDataState({
           fullName: profile.full_name || "",
@@ -170,7 +185,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      const { data: projectsData } = await supabase.from('projects').select('*, media (*)').order('created_at', { ascending: false });
       if (projectsData) {
         setProjectsState(projectsData.map((p: any) => ({
           id: p.id,
@@ -189,28 +203,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         })));
       }
 
-      const { data: servicesData } = await supabase.from('services').select('*').order('display_order', { ascending: true });
       if (servicesData) {
         setServicesState(servicesData.map((s: any) => ({
           id: s.id, title: s.title, description: s.description, price: s.price, features: s.features || []
         })));
       }
 
-      const { data: skillsData } = await supabase.from('skills').select('*').order('display_order', { ascending: true });
       if (skillsData) {
         setSkillsState(skillsData.map((s: any) => ({
           id: s.id, category: s.category, name: s.name, tools: s.tools || []
         })));
       }
 
-      const { data: testData } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false });
       if (testData) {
         setTestimonialsState(testData.map((t: any) => ({
           id: t.id, clientName: t.client_name, clientRole: t.client_role, company: t.company, feedback: t.feedback, clientImage: t.client_image
         })));
       }
 
-      const { data: expData } = await supabase.from('experience').select('*').order('display_order', { ascending: true });
       if (expData) {
         setExperienceState(expData.map((e: any) => ({
           id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
@@ -226,7 +236,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchUserData = async (userId: string) => {
     setIsLoading(true);
     try {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+        const [
+          { data: profile },
+          { data: projectsData },
+          { data: servicesData },
+          { data: skillsData },
+          { data: testData },
+          { data: expData }
+        ] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', userId).single(),
+          supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false }),
+          supabase.from('services').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
+          supabase.from('skills').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
+          supabase.from('testimonials').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+          supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true })
+        ]);
+
         if (profile) {
           setProfileDataState({
             fullName: profile.full_name || "",
@@ -247,7 +272,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           });
         }
   
-        const { data: projectsData } = await supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false });
         if (projectsData) {
           setProjectsState(projectsData.map((p: any) => ({
             id: p.id,
@@ -266,28 +290,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           })));
         }
   
-        const { data: servicesData } = await supabase.from('services').select('*').eq('user_id', userId).order('display_order', { ascending: true });
         if (servicesData) {
           setServicesState(servicesData.map((s: any) => ({
             id: s.id, title: s.title, description: s.description, price: s.price, features: s.features || []
           })));
         }
   
-        const { data: skillsData } = await supabase.from('skills').select('*').eq('user_id', userId).order('display_order', { ascending: true });
         if (skillsData) {
           setSkillsState(skillsData.map((s: any) => ({
             id: s.id, category: s.category, name: s.name, tools: s.tools || []
           })));
         }
   
-        const { data: testData } = await supabase.from('testimonials').select('*').eq('user_id', userId).order('created_at', { ascending: false });
         if (testData) {
           setTestimonialsState(testData.map((t: any) => ({
             id: t.id, clientName: t.client_name, clientRole: t.client_role, company: t.company, feedback: t.feedback, clientImage: t.client_image
           })));
         }
   
-        const { data: expData } = await supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true });
         if (expData) {
           setExperienceState(expData.map((e: any) => ({
             id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
@@ -330,7 +350,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }));
       await supabase.from('media').insert(mediaToInsert);
     }
-    await fetchUserData(session.user.id);
+
+    // Faster partial refetch: only update projects list
+    const { data: newProjects } = await supabase
+      .from('projects')
+      .select('*, media (*)')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+    
+    if (newProjects) {
+        setProjectsState(newProjects.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            category: p.category,
+            description: p.description,
+            features: p.features || [],
+            tech: p.tech || [],
+            liveUrl: p.live_url,
+            caseStudyUrl: p.case_study_url,
+            logo: p.logo,
+            viewCount: p.view_count || 0,
+            media: p.media?.map((m: any) => ({
+              id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
+            })) || []
+        })));
+    }
+
     return { error: null };
   };
 
@@ -366,7 +411,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await supabase.from('media').insert(mediaToInsert);
       }
     }
-    await fetchUserData(session.user.id);
+
+    // Faster partial refetch: only update projects list
+    const { data: newProjects } = await supabase
+      .from('projects')
+      .select('*, media (*)')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+    
+    if (newProjects) {
+        setProjectsState(newProjects.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            category: p.category,
+            description: p.description,
+            features: p.features || [],
+            tech: p.tech || [],
+            liveUrl: p.live_url,
+            caseStudyUrl: p.case_study_url,
+            logo: p.logo,
+            viewCount: p.view_count || 0,
+            media: p.media?.map((m: any) => ({
+              id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
+            })) || []
+        })));
+    }
+
     return { error: null };
   };
 

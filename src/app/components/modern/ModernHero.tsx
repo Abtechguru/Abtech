@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect } from "react";
-import { ChevronRight, User } from "lucide-react";
+import { ArrowDown, Paintbrush, Box, ChevronRight } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
 
 export function ModernHero() {
@@ -11,161 +11,129 @@ export function ModernHero() {
   }, []);
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-12 relative py-20 overflow-hidden bg-white">
-      {/* Decorative Circles */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--blue-primary)]/[0.03] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[var(--purple)]/[0.03] rounded-full translate-y-1/3 -translate-x-1/3 blur-3xl pointer-events-none" />
+    <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-12 relative py-20 overflow-hidden bg-white select-none">
+      {/* Decorative Square */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2 }}
+        className="absolute top-[20%] left-[20%] w-20 h-28 bg-gradient-to-br from-blue-400/30 to-blue-600/10 blur-xl rounded-2xl pointer-events-none"
+      />
 
-      {/* Main Content Wrapper */}
-      <div className="max-w-7xl w-full grid lg:grid-cols-12 gap-16 items-center">
-        <div className="lg:col-span-7 order-2 lg:order-1">
-          {/* Badge */}
+      {/* Top Right "Work with me" Button */}
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="absolute top-10 right-10 z-20"
+      >
+        <a
+          href="#contact"
+          className="bg-[var(--blue-dark)] text-white px-8 py-5 rounded-2xl font-bold flex flex-col items-center gap-1 group hover:bg-[var(--blue-primary)] transition-all shadow-xl shadow-blue-900/10"
+        >
+          <div className="flex items-center gap-3">
+             <span className="text-sm tracking-widest uppercase">Work</span>
+             <div className="w-8 h-[2px] bg-white transform group-hover:translate-x-2 transition-transform" />
+             <ChevronRight className="w-4 h-4" />
+          </div>
+          <span className="text-sm tracking-widest uppercase">with me</span>
+        </a>
+      </motion.div>
+
+      {/* Right Side "Honors" Badge */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+          <div className="bg-teal-200/50 py-10 px-4 rounded-l-2xl border-l border-y border-teal-300/30 backdrop-blur-sm">
+            <span className="vertical-text text-[10px] font-black uppercase tracking-[0.5em] text-teal-800 opacity-60">Honors</span>
+          </div>
+      </div>
+
+      {/* Bottom Right Cookie/Theme Icon */}
+      <div className="absolute bottom-10 right-10 opacity-20 hover:opacity-100 transition-opacity cursor-pointer">
+          <Box className="w-8 h-8 text-[var(--blue-dark)]" />
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl w-full">
+        <div className="space-y-8 mb-12">
+          {/* Line 01 */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--blue-primary)]/5 border border-[var(--blue-primary)]/10 text-[var(--blue-primary)] text-sm font-black uppercase tracking-[0.2em] mb-12"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-start gap-8"
           >
-            <div className="w-2 h-2 rounded-full bg-[var(--blue-primary)] animate-pulse" />
-            Software Architecture & AI
+            <span className="text-2xl text-[var(--muted-foreground)] font-mono opacity-40 pt-4">01</span>
+            <h1 className="text-6xl md:text-8xl flex flex-wrap items-center gap-x-4 tracking-tight">
+              <span className="text-[var(--muted-foreground)] opacity-40">&lt;</span>
+              <span>Hello, I'm</span>
+              <span className="text-[var(--blue-dark)] font-bold">{profileData.fullName.split(' ')[0]}!</span>
+              <span className="text-[var(--muted-foreground)] opacity-40">&gt;</span>
+            </h1>
           </motion.div>
 
-          <div className="space-y-2 mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex items-center gap-4 text-[var(--muted-foreground)] font-mono text-lg mb-4"
-            >
-              <span className="w-12 h-[1px] bg-[var(--border)]" />
-              <span>01 / Start</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-5xl sm:text-7xl md:text-8xl font-black leading-[1.1] tracking-tight text-[var(--blue-dark)]"
-            >
-              I am <br />
-              <span className="relative inline-block mt-4">
-                <span className="relative z-10 bg-gradient-to-r from-[var(--blue-primary)] via-blue-400 to-indigo-600 bg-clip-text text-transparent filter drop-shadow-sm">
-                  {profileData.fullName}
-                </span>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ delay: 0.8, duration: 0.8 }}
-                  className="absolute bottom-4 left-0 h-[20%] bg-[var(--blue-primary)]/10 -z-0 rounded-sm"
-                />
-              </span>
-            </motion.h1>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex items-center gap-6 mt-8"
-            >
-               <h2 className="text-2xl sm:text-4xl text-[var(--muted-foreground)] font-medium flex items-center gap-3">
-                    Expert in <span className="text-[var(--blue-dark)] font-bold decoration-[var(--blue-primary)] decoration-4 underline-offset-8 underline">Scalable Web Systems</span>
-               </h2>
-            </motion.div>
-          </div>
-
+          {/* Line 02 */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mb-12 max-w-2xl"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex items-start gap-8"
           >
-            <p className="text-xl text-[var(--muted-foreground)] leading-relaxed mb-10">
-              {profileData.bio || "Crafting high-performance digital experiences through elegant code and thoughtful design."}
-            </p>
-            
-            <div className="flex flex-wrap gap-6">
-              <motion.a
-                href="#projects"
-                whileHover={{ scale: 1.02, x: 5 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-10 py-5 bg-[var(--blue-dark)] text-white rounded-[24px] font-bold text-lg hover:bg-[var(--blue-primary)] transition-all shadow-2xl shadow-[var(--blue-primary)]/20 flex items-center gap-3 group"
-              >
-                Explore Works
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </motion.a>
-              
-              <motion.a
-                href="#contact"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-10 py-5 border-2 border-[var(--border)] text-[var(--blue-dark)] rounded-[24px] font-bold text-lg hover:border-[var(--blue-primary)] hover:text-[var(--blue-primary)] transition-all bg-white/50 backdrop-blur-sm"
-              >
-                Hire Me
-              </motion.a>
-            </div>
+            <span className="text-2xl text-[var(--muted-foreground)] font-mono opacity-40 pt-4">02</span>
+            <h2 className="text-6xl md:text-8xl flex flex-wrap items-center gap-x-4 tracking-tight">
+              <span className="text-[var(--muted-foreground)] opacity-40">&lt;</span>
+              <span>I</span>
+              <span className="text-[var(--blue-dark)] font-bold relative inline-flex items-center gap-4">
+                design
+                <Paintbrush className="w-10 h-10 text-[var(--blue-primary)] -rotate-12" />
+              </span>
+              <span>and</span>
+              <span className="text-[var(--blue-dark)] font-bold relative inline-flex items-center gap-4">
+                develop
+                <Box className="w-10 h-10 text-[var(--blue-primary)]" />
+              </span>
+            </h2>
+          </motion.div>
+
+          {/* Line 03 */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex items-start gap-8"
+          >
+            <span className="text-2xl text-[var(--muted-foreground)] font-mono opacity-40 pt-4">03</span>
+            <h2 className="text-6xl md:text-8xl flex flex-wrap items-center gap-x-4 tracking-tight">
+              <span className="ml-12 md:ml-24">websites.</span>
+              <span className="text-[var(--muted-foreground)] opacity-40">&gt;</span>
+            </h2>
           </motion.div>
         </div>
 
-        {/* Profile Image Column */}
+        {/* Subtext */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, type: "spring", damping: 15 }}
-          className="lg:col-span-5 order-1 lg:order-2 flex justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="ml-32 md:ml-40"
         >
-          <div className="relative group p-4">
-            {/* Background Decoration */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--blue-primary)]/20 to-purple-500/20 rounded-[60px] blur-3xl opacity-30 group-hover:opacity-50 transition-opacity" />
-            <div className="absolute -inset-2 bg-gradient-to-tr from-[var(--blue-primary)] to-indigo-500 rounded-[64px] opacity-10 blur-sm group-hover:opacity-20 transition-opacity" />
-            
-            <div className="relative w-72 h-72 sm:w-[450px] sm:h-[450px] rounded-[60px] overflow-hidden border-8 border-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] transform group-hover:-rotate-2 transition-all duration-700">
-              {profileData.profilePhoto ? (
-                <img
-                  src={profileData.profilePhoto}
-                  alt={profileData.fullName}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-[var(--secondary)] flex items-center justify-center">
-                  <User className="w-40 h-40 text-[var(--muted-foreground)]/10" />
-                </div>
-              )}
-
-              {/* Glass Overlay on Image */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-
-            {/* Floating Stats */}
-            <motion.div
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-12 -right-8 px-6 py-4 bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 z-20 flex flex-col items-center min-w-[120px]"
-            >
-               <span className="text-2xl font-black text-[var(--blue-primary)]">{profileData.projectsDelivered}</span>
-               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Success</span>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, 15, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-12 -left-8 px-6 py-4 bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 z-20 flex flex-col items-center min-w-[120px]"
-            >
-               <span className="text-2xl font-black text-green-500">{profileData.yearsExperience}</span>
-               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Expertise</span>
-            </motion.div>
-          </div>
+          <p className="text-2xl text-[var(--blue-dark)] font-medium max-w-xl">
+             {profileData.bio || "I also design your brand image, logo, and digital experience..."}
+          </p>
         </motion.div>
       </div>
 
-      {/* Social Indicator */}
+      {/* Learn More Scroll Indicator */}
       <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute right-12 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-8 text-[var(--muted-foreground)]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 group cursor-pointer"
       >
-          <div className="h-24 w-[1px] bg-gradient-to-b from-transparent to-[var(--border)] mx-auto" />
-          <span className="text-xs font-black uppercase tracking-[0.3em] vertical-text">Scroll Down</span>
-          <div className="h-24 w-[1px] bg-gradient-to-t from-transparent to-[var(--border)] mx-auto" />
+        <span className="text-sm font-bold uppercase tracking-widest text-[var(--muted-foreground)] group-hover:text-[var(--blue-dark)] transition-colors">
+            Learn more
+        </span>
+        <div className="w-12 h-12 rounded-2xl bg-[var(--blue-dark)] flex items-center justify-center text-white shadow-lg group-hover:bg-[var(--blue-primary)] transition-all">
+            <ArrowDown className="w-6 h-6 animate-bounce" />
+        </div>
       </motion.div>
     </section>
   );

@@ -4,9 +4,17 @@ import { useState } from "react";
 import { useData } from "../../contexts/DataContext";
 
 export function Settings() {
-  const { profileData, setProfileData } = useData();
+  const { profileData, setProfileData, isLoading } = useData();
   const [profile, setProfile] = useState(profileData);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(profileData.profilePhoto || "");
+
+  // Sync local state when profileData finishes loading from Supabase
+  useEffect(() => {
+    if (!isLoading && profileData) {
+      setProfile(profileData);
+      setProfilePhotoPreview(profileData.profilePhoto || "");
+    }
+  }, [profileData, isLoading]);
 
   const [notifications, setNotifications] = useState({
     emailMessages: true,
