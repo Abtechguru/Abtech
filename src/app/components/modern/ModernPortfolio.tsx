@@ -32,9 +32,15 @@ export function ModernPortfolio() {
           
           <div className="space-y-0">
             <ProcessSection />
+            <div className="py-20 bg-[var(--secondary)]/10">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 mb-12 text-center">
+                    <h2 className="text-3xl font-black text-[var(--blue-dark)] mb-4 uppercase tracking-tighter">Quick Utilities</h2>
+                    <p className="text-[var(--muted-foreground)] font-bold uppercase tracking-widest text-xs opacity-60">Handy tools for global business</p>
+                </div>
+                <CurrencyConverter />
+            </div>
             <PricingSection />
             <ModernProjects />
-            <CurrencyConverter />
             <ServicesSection />
             <TestimonialsSection />
             <ModernAbout />
