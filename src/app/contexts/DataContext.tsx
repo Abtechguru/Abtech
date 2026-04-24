@@ -3,11 +3,11 @@ import { supabase } from "../utils/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
 interface MediaFile {
-  id: string;
+  id?: string;
   type: "image" | "video" | "logo";
   url: string;
   name: string;
-  size: string;
+  size?: string;
 }
 
 interface Project {
@@ -21,6 +21,7 @@ interface Project {
   caseStudyUrl?: string;
   media?: MediaFile[];
   logo?: string;
+  viewCount: number;
 }
 
 interface Service {
@@ -29,6 +30,30 @@ interface Service {
   description: string;
   price: string;
   features: string[];
+}
+
+interface Skill {
+  id: string;
+  category: string;
+  name: string;
+  tools: string[];
+}
+
+interface Testimonial {
+  id: string;
+  clientName: string;
+  clientRole: string;
+  company: string;
+  feedback: string;
+  clientImage: string;
+}
+
+interface Experience {
+  id: string;
+  company: string;
+  role: string;
+  period: string;
+  description: string;
 }
 
 interface ProfileData {
@@ -43,22 +68,29 @@ interface ProfileData {
   linkedin: string;
   behance: string;
   website: string;
+  viewCount: number;
+  yearsExperience: string;
+  projectsDelivered: string;
+  activeUsers: string;
 }
 
 interface DataContextType {
   projects: Project[];
   services: Service[];
+  skills: Skill[];
+  testimonials: Testimonial[];
+  experience: Experience[];
   profileData: ProfileData;
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
-  addProject: (project: Omit<Project, 'id'>) => Promise<{ error: any }>;
+  addProject: (project: Omit<Project, 'id' | 'viewCount'>) => Promise<{ error: any }>;
   updateProject: (id: string, project: Partial<Project>) => Promise<{ error: any }>;
   deleteProject: (id: string) => Promise<{ error: any }>;
-  addService: (service: Omit<Service, 'id'>) => Promise<{ error: any }>;
-  updateService: (id: string, service: Partial<Service>) => Promise<{ error: any }>;
-  deleteService: (id: string) => Promise<{ error: any }>;
+  incrementProjectView: (id: string) => Promise<void>;
+  incrementProfileView: () => Promise<void>;
   setProfileData: (data: ProfileData) => Promise<{ error: any }>;
+  sendMessage: (msg: { name: string; email: string; subject: string; message: string }) => Promise<{ error: any }>;
   login: (email: string, password: string) => Promise<{ error: any }>;
   logout: () => Promise<void>;
 }
@@ -75,12 +107,19 @@ const DEFAULT_PROFILE: ProfileData = {
   github: "https://github.com/lateefabiodun",
   linkedin: "https://linkedin.com/in/lateefabiodun",
   behance: "https://behance.net/lateefabiodun",
-  website: "https://lateefabiodun.dev"
+  website: "https://lateefabiodun.dev",
+  viewCount: 0,
+  yearsExperience: "3+",
+  projectsDelivered: "50+",
+  activeUsers: "10K+"
 };
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjectsState] = useState<Project[]>([]);
   const [services, setServicesState] = useState<Service[]>([]);
+  const [skills, setSkillsState] = useState<Skill[]>([]);
+  const [testimonials, setTestimonialsState] = useState<Testimonial[]>([]);
+  const [experience, setExperienceState] = useState<Experience[]>([]);
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,9 +139,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (session) {
         fetchUserData(session.user.id);
       } else {
-        setProjectsState([]);
-        setServicesState([]);
-        setProfileDataState(DEFAULT_PROFILE);
         fetchAllData();
       }
     });
@@ -127,6 +163,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           linkedin: profile.linkedin || "",
           behance: profile.behance || "",
           website: profile.website || "",
+          viewCount: profile.view_count || 0,
+          yearsExperience: profile.years_experience || "3+",
+          projectsDelivered: profile.projects_delivered || "50+",
+          activeUsers: profile.active_users || "10K+"
         });
       }
 
@@ -142,6 +182,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           liveUrl: p.live_url,
           caseStudyUrl: p.case_study_url,
           logo: p.logo,
+          viewCount: p.view_count || 0,
           media: p.media?.map((m: any) => ({
             id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
           })) || []
@@ -151,11 +192,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const { data: servicesData } = await supabase.from('services').select('*').order('display_order', { ascending: true });
       if (servicesData) {
         setServicesState(servicesData.map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          description: s.description,
-          price: s.price,
-          features: s.features || []
+          id: s.id, title: s.title, description: s.description, price: s.price, features: s.features || []
+        })));
+      }
+
+      const { data: skillsData } = await supabase.from('skills').select('*').order('display_order', { ascending: true });
+      if (skillsData) {
+        setSkillsState(skillsData.map((s: any) => ({
+          id: s.id, category: s.category, name: s.name, tools: s.tools || []
+        })));
+      }
+
+      const { data: testData } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false });
+      if (testData) {
+        setTestimonialsState(testData.map((t: any) => ({
+          id: t.id, clientName: t.client_name, clientRole: t.client_role, company: t.company, feedback: t.feedback, clientImage: t.client_image
+        })));
+      }
+
+      const { data: expData } = await supabase.from('experience').select('*').order('display_order', { ascending: true });
+      if (expData) {
+        setExperienceState(expData.map((e: any) => ({
+          id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
         })));
       }
     } catch (error) {
@@ -168,51 +226,73 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchUserData = async (userId: string) => {
     setIsLoading(true);
     try {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
-      if (profile) {
-        setProfileDataState({
-          fullName: profile.full_name || "",
-          title: profile.title || "",
-          location: profile.location || "",
-          email: profile.email || "",
-          phone: profile.phone || "",
-          bio: profile.bio || "",
-          profilePhoto: profile.profile_photo || "",
-          github: profile.github || "",
-          linkedin: profile.linkedin || "",
-          behance: profile.behance || "",
-          website: profile.website || "",
-        });
-      }
-
-      const { data: projectsData } = await supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false });
-      if (projectsData) {
-        setProjectsState(projectsData.map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          category: p.category,
-          description: p.description,
-          features: p.features || [],
-          tech: p.tech || [],
-          liveUrl: p.live_url,
-          caseStudyUrl: p.case_study_url,
-          logo: p.logo,
-          media: p.media?.map((m: any) => ({
-            id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
-          })) || []
-        })));
-      }
-
-      const { data: servicesData } = await supabase.from('services').select('*').eq('user_id', userId).order('display_order', { ascending: true });
-      if (servicesData) {
-        setServicesState(servicesData.map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          description: s.description,
-          price: s.price,
-          features: s.features || []
-        })));
-      }
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+        if (profile) {
+          setProfileDataState({
+            fullName: profile.full_name || "",
+            title: profile.title || "",
+            location: profile.location || "",
+            email: profile.email || "",
+            phone: profile.phone || "",
+            bio: profile.bio || "",
+            profilePhoto: profile.profile_photo || "",
+            github: profile.github || "",
+            linkedin: profile.linkedin || "",
+            behance: profile.behance || "",
+            website: profile.website || "",
+            viewCount: profile.view_count || 0,
+            yearsExperience: profile.years_experience || "3+",
+            projectsDelivered: profile.projects_delivered || "50+",
+            activeUsers: profile.active_users || "10K+"
+          });
+        }
+  
+        const { data: projectsData } = await supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false });
+        if (projectsData) {
+          setProjectsState(projectsData.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            category: p.category,
+            description: p.description,
+            features: p.features || [],
+            tech: p.tech || [],
+            liveUrl: p.live_url,
+            caseStudyUrl: p.case_study_url,
+            logo: p.logo,
+            viewCount: p.view_count || 0,
+            media: p.media?.map((m: any) => ({
+              id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
+            })) || []
+          })));
+        }
+  
+        const { data: servicesData } = await supabase.from('services').select('*').eq('user_id', userId).order('display_order', { ascending: true });
+        if (servicesData) {
+          setServicesState(servicesData.map((s: any) => ({
+            id: s.id, title: s.title, description: s.description, price: s.price, features: s.features || []
+          })));
+        }
+  
+        const { data: skillsData } = await supabase.from('skills').select('*').eq('user_id', userId).order('display_order', { ascending: true });
+        if (skillsData) {
+          setSkillsState(skillsData.map((s: any) => ({
+            id: s.id, category: s.category, name: s.name, tools: s.tools || []
+          })));
+        }
+  
+        const { data: testData } = await supabase.from('testimonials').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+        if (testData) {
+          setTestimonialsState(testData.map((t: any) => ({
+            id: t.id, clientName: t.client_name, clientRole: t.client_role, company: t.company, feedback: t.feedback, clientImage: t.client_image
+          })));
+        }
+  
+        const { data: expData } = await supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true });
+        if (expData) {
+          setExperienceState(expData.map((e: any) => ({
+            id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
+          })));
+        }
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
@@ -220,60 +300,130 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addProject = async (project: Omit<Project, 'id'>) => {
-    const { data, error } = await supabase.from('projects').insert({ user_id: session?.user.id, ...project, live_url: project.liveUrl, case_study_url: project.caseStudyUrl }).select().single();
-    if (!error && data) {
-      setProjectsState([{ ...project, id: data.id, media: [] }, ...projects]);
+  const addProject = async (project: Omit<Project, 'id' | 'viewCount'>) => {
+    if (!session?.user) return { error: "Not authenticated" };
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .insert({
+        user_id: session.user.id,
+        title: project.title,
+        category: project.category,
+        description: project.description,
+        features: project.features,
+        tech: project.tech,
+        live_url: project.liveUrl,
+        case_study_url: project.caseStudyUrl,
+        logo: project.logo
+      })
+      .select()
+      .single();
+
+    if (projectError) return { error: projectError };
+
+    if (project.media && project.media.length > 0) {
+      const mediaToInsert = project.media.map(m => ({
+        project_id: projectData.id,
+        type: m.type,
+        url: m.url,
+        name: m.name,
+        size: m.size
+      }));
+      await supabase.from('media').insert(mediaToInsert);
     }
-    return { error };
+    await fetchUserData(session.user.id);
+    return { error: null };
   };
 
   const updateProject = async (id: string, project: Partial<Project>) => {
-    const { error } = await supabase.from('projects').update({ ...project, live_url: project.liveUrl, case_study_url: project.caseStudyUrl, updated_at: new Date().toISOString() }).eq('id', id);
-    if (!error) {
-      setProjectsState(projects.map(p => p.id === id ? { ...p, ...project } : p));
+    if (!session?.user) return { error: "Not authenticated" };
+    const { error: projectError } = await supabase
+      .from('projects')
+      .update({
+        title: project.title,
+        category: project.category,
+        description: project.description,
+        features: project.features,
+        tech: project.tech,
+        live_url: project.liveUrl,
+        case_study_url: project.caseStudyUrl,
+        logo: project.logo,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (projectError) return { error: projectError };
+
+    if (project.media) {
+      await supabase.from('media').delete().eq('project_id', id);
+      if (project.media.length > 0) {
+        const mediaToInsert = project.media.map(m => ({
+          project_id: id,
+          type: m.type,
+          url: m.url,
+          name: m.name,
+          size: m.size
+        }));
+        await supabase.from('media').insert(mediaToInsert);
+      }
     }
-    return { error };
+    await fetchUserData(session.user.id);
+    return { error: null };
   };
 
   const deleteProject = async (id: string) => {
     const { error } = await supabase.from('projects').delete().eq('id', id);
-    if (!error) {
-      setProjectsState(projects.filter(p => p.id !== id));
-    }
+    if (!error) setProjectsState(projects.filter(p => p.id !== id));
     return { error };
   };
 
-  const addService = async (service: Omit<Service, 'id'>) => {
-    const { data, error } = await supabase.from('services').insert({ user_id: session?.user.id, ...service }).select().single();
-    if (!error && data) {
-      setServicesState([...services, { ...service, id: data.id }]);
-    }
-    return { error };
+  const incrementProjectView = async (id: string) => {
+    await supabase.rpc('increment_project_view', { project_id: id });
   };
 
-  const updateService = async (id: string, service: Partial<Service>) => {
-    const { error } = await supabase.from('services').update({ ...service }).eq('id', id);
-    if (!error) {
-      setServicesState(services.map(s => s.id === id ? { ...s, ...service } : s));
+  const incrementProfileView = async () => {
+    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
+    if (profile) {
+      await supabase.rpc('increment_profile_view', { profile_id: profile.id });
     }
-    return { error };
-  };
-
-  const deleteService = async (id: string) => {
-    const { error } = await supabase.from('services').delete().eq('id', id);
-    if (!error) {
-      setServicesState(services.filter(s => s.id !== id));
-    }
-    return { error };
   };
 
   const updateProfileData = async (data: ProfileData) => {
-    const { error } = await supabase.from('profiles').update({ ...data, full_name: data.fullName, profile_photo: data.profilePhoto, updated_at: new Date().toISOString() }).eq('id', session?.user.id);
-    if (!error) {
-      setProfileDataState(data);
-    }
+    if (!session?.user) return { error: "Not authenticated" };
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: data.fullName,
+        title: data.title,
+        location: data.location,
+        email: data.email,
+        phone: data.phone,
+        bio: data.bio,
+        profile_photo: data.profilePhoto,
+        github: data.github,
+        linkedin: data.linkedin,
+        behance: data.behance,
+        website: data.website,
+        years_experience: data.yearsExperience,
+        projects_delivered: data.projectsDelivered,
+        active_users: data.activeUsers,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', session.user.id);
+
+    if (!error) setProfileDataState(data);
     return { error };
+  };
+
+  const sendMessage = async (msg: { name: string; email: string; subject: string; message: string }) => {
+    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
+    if (!profile) return { error: "Recipient not found" };
+    return await supabase.from('messages').insert({
+      to_user_id: profile.id,
+      name: msg.name,
+      email: msg.email,
+      subject: msg.subject,
+      message: msg.message
+    });
   };
 
   const login = async (email: string, password: string) => {
@@ -286,7 +436,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <DataContext.Provider value={{ projects, services, profileData, isAuthenticated: !!session, isLoading, user: session?.user ?? null, addProject, updateProject, deleteProject, addService, updateService, deleteService, setProfileData: updateProfileData, login, logout }}>
+    <DataContext.Provider value={{
+      projects, services, skills, testimonials, experience, profileData,
+      isAuthenticated: !!session, isLoading, user: session?.user ?? null,
+      addProject, updateProject, deleteProject, incrementProjectView, incrementProfileView,
+      setProfileData: updateProfileData, sendMessage, login, logout
+    }}>
       {children}
     </DataContext.Provider>
   );

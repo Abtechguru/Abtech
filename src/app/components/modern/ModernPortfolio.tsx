@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Sidebar } from "./Sidebar";
 import { ModernHero } from "./ModernHero";
 import { ProcessSection } from "./ProcessSection";
@@ -13,41 +14,61 @@ export function ModernPortfolio() {
   const { profileData } = useData();
 
   return (
-    <div className="bg-white text-[var(--foreground)] min-h-screen">
+    <div className="bg-white text-[var(--foreground)] min-h-screen selection:bg-[var(--blue-primary)] selection:text-white">
+      <Helmet>
+        <title>{profileData.fullName} | {profileData.title}</title>
+        <meta name="description" content={profileData.bio} />
+        <meta property="og:title" content={`${profileData.fullName} - Portfolio`} />
+        <meta property="og:description" content={profileData.bio} />
+        <meta property="og:image" content={profileData.profilePhoto} />
+      </Helmet>
       <Sidebar />
-      <main className="ml-64">
-        <ModernHero />
-        <ProcessSection />
-        <PricingSection />
-        <ModernProjects />
-        <ServicesSection />
-        <TestimonialsSection />
-        <ModernAbout />
-        <ModernContact />
+      <main className="lg:ml-72 transition-all duration-300">
+        <div className="mx-auto">
+          <ModernHero />
+          
+          <div className="space-y-0">
+            <ProcessSection />
+            <PricingSection />
+            <ModernProjects />
+            <ServicesSection />
+            <TestimonialsSection />
+            <ModernAbout />
+            <ModernContact />
+          </div>
 
-        {/* Footer */}
-        <footer className="py-12 px-12 border-t border-[var(--border)]">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[var(--muted-foreground)]">
-              © 2026 {profileData.fullName}
-            </p>
-            <p className="text-[var(--muted-foreground)]">
-              {profileData.location}
-            </p>
-            <p className="text-[var(--muted-foreground)]">
-              Built with React + Tailwind
-            </p>
-          </div>
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-6 mt-6 text-sm text-[var(--muted-foreground)]">
-            <a href="#" className="hover:text-[var(--blue-primary)] transition-colors">
-              Privacy Policy
-            </a>
-            <span>|</span>
-            <a href="#" className="hover:text-[var(--blue-primary)] transition-colors">
-              Legal Notice
-            </a>
-          </div>
-        </footer>
+          {/* Footer */}
+          <footer className="py-20 px-6 md:px-12 border-t border-[var(--border)] bg-[var(--secondary)]/30">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--blue-primary)] flex items-center justify-center text-white font-bold">
+                    {profileData.fullName.charAt(0)}
+                  </div>
+                  <span className="text-xl font-bold text-[var(--blue-dark)] tracking-tight">
+                    {profileData.fullName}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-8 text-sm font-bold text-[var(--muted-foreground)]">
+                  <a href="#" className="hover:text-[var(--blue-primary)] transition-colors">Home</a>
+                  <a href="#projects" className="hover:text-[var(--blue-primary)] transition-colors">Projects</a>
+                  <a href="#about" className="hover:text-[var(--blue-primary)] transition-colors">About</a>
+                  <a href="#contact" className="hover:text-[var(--blue-primary)] transition-colors">Contact</a>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-12 border-t border-[var(--border)]/50">
+                <p className="text-[var(--muted-foreground)] text-sm font-medium">
+                  © 2026 {profileData.fullName}. All rights reserved.
+                </p>
+                <div className="flex items-center gap-6 text-sm font-medium text-[var(--muted-foreground)]">
+                  <p>{profileData.location}</p>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
       </main>
     </div>
   );

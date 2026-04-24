@@ -5,11 +5,11 @@ import { MediaUploader } from "./MediaUploader";
 import { useData } from "../../contexts/DataContext";
 
 interface MediaFile {
-  id: string;
+  id?: string;
   type: "image" | "video" | "logo";
   url: string;
   name: string;
-  size: string;
+  size?: string;
 }
 
 interface Project {
@@ -114,7 +114,7 @@ export function ProjectsManager() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowAddForm(true)}
-          className="px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all"
+          className="px-6 py-3 bg-[var(--blue-primary)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg transition-all"
         >
           <Plus className="w-5 h-5" /> Add Project
         </motion.button>
@@ -125,210 +125,224 @@ export function ProjectsManager() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-6 rounded-2xl bg-[var(--card)] border-2 border-[var(--orange)]"
+          className="mb-8 p-8 rounded-3xl bg-white border-2 border-[var(--blue-primary)] shadow-2xl"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl">Add New Project</h3>
-            <button onClick={() => setShowAddForm(false)} className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-              <X className="w-5 h-5" />
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-bold">Add New Project</h3>
+            <button onClick={() => setShowAddForm(false)} className="w-10 h-10 rounded-full bg-[var(--secondary)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-red-500 transition-all">
+              <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="Project Title"
-              value={newProject.title}
-              onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Category"
-              value={newProject.category}
-              onChange={(e) => setNewProject({ ...newProject, category: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-            />
-            <textarea
-              placeholder="Description"
-              value={newProject.description}
-              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-              className="md:col-span-2 px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none min-h-24"
-            />
-            <input
-              type="text"
-              placeholder="Live URL (optional)"
-              value={newProject.liveUrl}
-              onChange={(e) => setNewProject({ ...newProject, liveUrl: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Case Study URL (optional)"
-              value={newProject.caseStudyUrl}
-              onChange={(e) => setNewProject({ ...newProject, caseStudyUrl: e.target.value })}
-              className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Logo URL (optional)"
-              value={newProject.logo}
-              onChange={(e) => setNewProject({ ...newProject, logo: e.target.value })}
-              className="md:col-span-2 px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-            />
+          
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold mb-2">Project Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fintech Mobile App"
+                  value={newProject.title}
+                  onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Category</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Web Development"
+                  value={newProject.category}
+                  onChange={(e) => setNewProject({ ...newProject, category: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold mb-2">Description</label>
+              <textarea
+                placeholder="Brief project description..."
+                value={newProject.description}
+                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none min-h-[120px] transition-all"
+              />
+            </div>
+
+            <div className="md:col-span-2 grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold mb-2">Live URL</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={newProject.liveUrl}
+                  onChange={(e) => setNewProject({ ...newProject, liveUrl: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Case Study URL</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={newProject.caseStudyUrl}
+                  onChange={(e) => setNewProject({ ...newProject, caseStudyUrl: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none transition-all"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="mb-4">
-            <h4 className="text-sm mb-3 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" /> Project Media (Images & Videos)
+          <div className="mb-8">
+            <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-[var(--blue-primary)]" /> Media Assets (Images & Videos)
             </h4>
-            <MediaUploader
-              onFilesSelected={(files) => setNewProject({ ...newProject, media: files })}
-              existingFiles={newProject.media}
-            />
+            <div className="p-4 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--secondary)]/50">
+              <MediaUploader
+                onFilesSelected={(files) => setNewProject({ ...newProject, media: files })}
+                existingFiles={newProject.media}
+              />
+            </div>
           </div>
 
-          <div className="mt-4">
+          <div className="flex justify-end gap-3 pt-6 border-t border-[var(--border)]">
+             <button
+              onClick={() => setShowAddForm(false)}
+              className="px-8 py-3 rounded-xl font-bold bg-[var(--secondary)] hover:bg-[var(--muted)] transition-all"
+            >
+              Cancel
+            </button>
             <button
               onClick={handleAddProject}
               disabled={isSaving}
-              className="px-6 py-3 bg-[var(--orange)] text-white rounded-xl hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-8 py-3 bg-[var(--blue-primary)] text-white rounded-xl font-bold hover:shadow-lg disabled:opacity-50 flex items-center gap-2 transition-all"
             >
-              {isSaving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              <span>{isSaving ? "Saving..." : "Save Project"}</span>
+              {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
+              <span>{isSaving ? "Creating..." : "Create Project"}</span>
             </button>
           </div>
         </motion.div>
       )}
 
       {/* Projects List */}
-      <div className="space-y-4">
+      <div className="grid gap-6">
         {projects.map((project) => (
           <motion.div
             key={project.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:border-[var(--orange)] transition-all"
+            className={`p-6 rounded-2xl bg-white border ${isEditing === project.id ? 'border-[var(--blue-primary)] ring-2 ring-[var(--blue-primary)]/10' : 'border-[var(--border)]'} transition-all`}
           >
             {isEditing === project.id ? (
-              <div className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={editForm.category}
-                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                    className="px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-                  />
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={editForm.title}
+                      onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={editForm.category}
+                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                  </div>
                   <textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    className="md:col-span-2 px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none min-h-24"
+                    className="w-full px-4 py-3 rounded-xl bg-[var(--secondary)] border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none min-h-[110px]"
                   />
                 </div>
-                <div className="flex gap-2">
+                
+                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--secondary)]/30">
+                  <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-[var(--blue-primary)]" /> Update Media
+                  </h4>
+                  <MediaUploader
+                    onFilesSelected={(files) => setEditForm({ ...editForm, media: files })}
+                    existingFiles={editForm.media}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => handleSave(project.id)}
                     disabled={isSaving}
-                    className="px-4 py-2 bg-[var(--orange)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                    className="px-6 py-3 bg-[var(--blue-primary)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
                   >
-                    {isSaving ? (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    <span>Save</span>
+                    {isSaving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                    <span>Save Changes</span>
                   </button>
                   <button
                     onClick={() => setIsEditing(null)}
-                    className="px-4 py-2 bg-[var(--secondary)] rounded-xl flex items-center gap-2 hover:bg-[var(--muted)] transition-all"
+                    className="px-6 py-3 bg-[var(--secondary)] rounded-xl flex items-center gap-2 hover:bg-[var(--muted)] transition-all font-bold"
                   >
-                    <X className="w-4 h-4" /> Cancel
+                    Cancel
                   </button>
                 </div>
               </div>
             ) : (
               <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl">{project.title}</h3>
-                      <span className="px-3 py-1 rounded-lg bg-[var(--orange-glow)] text-[var(--orange)] text-sm">
-                        {project.category}
-                      </span>
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex gap-6">
+                    {project.media && project.media.length > 0 ? (
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-[var(--border)] flex-shrink-0">
+                        {project.media[0].type === "video" ? (
+                           <div className="w-full h-full bg-black flex items-center justify-center">
+                             <Play className="w-6 h-6 text-white" />
+                           </div>
+                        ) : (
+                          <img src={project.media[0].url} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-xl bg-[var(--secondary)] flex items-center justify-center border border-[var(--border)] text-[var(--muted-foreground)]">
+                        <ImageIcon className="w-8 h-8 opacity-20" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-xl font-bold">{project.title}</h3>
+                        <span className="px-3 py-0.5 rounded-full bg-[var(--blue-primary)]/5 text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-wider border border-[var(--blue-primary)]/10">
+                          {project.category}
+                        </span>
+                      </div>
+                      <p className="text-[var(--muted-foreground)] text-sm line-clamp-2 max-w-xl">{project.description}</p>
                     </div>
-                    <p className="text-[var(--muted-foreground)]">{project.description}</p>
                   </div>
-                  <div className="flex gap-2 ml-4">
+                  
+                  <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(project)}
-                      className="w-10 h-10 rounded-lg bg-[var(--secondary)] flex items-center justify-center hover:bg-[var(--muted)] transition-all"
+                      className="w-10 h-10 rounded-xl bg-[var(--secondary)] flex items-center justify-center hover:bg-[var(--blue-primary)] hover:text-white transition-all shadow-sm"
+                      title="Edit Project"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(project.id)}
-                      className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all"
+                      className="w-10 h-10 rounded-xl bg-red-50 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-sm"
+                      title="Delete Project"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm text-[var(--muted-foreground)] mb-2">Features</h4>
-                    <div className="space-y-1">
-                      {project.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm">
-                          <div className="w-1 h-1 rounded-full bg-[var(--orange)]" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm text-[var(--muted-foreground)] mb-2">Tech Stack</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {project.tech.map((tech, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 rounded-md bg-[var(--secondary)] text-xs border border-[var(--border)]"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-[var(--border)]">
+                  {project.tech.map((tech, idx) => (
+                    <span key={idx} className="px-2 py-1 rounded-lg bg-[var(--secondary)] text-[10px] font-bold text-[var(--muted-foreground)] border border-[var(--border)]">
+                      {tech}
+                    </span>
+                  ))}
+                  {project.media && project.media.length > 0 && (
+                    <span className="px-2 py-1 rounded-lg bg-green-50 text-[10px] font-bold text-green-600 border border-green-100 flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" /> {project.media.length} Media Items
+                    </span>
+                  )}
                 </div>
-
-                {(project.liveUrl || project.caseStudyUrl) && (
-                  <div className="mt-4 pt-4 border-t border-[var(--border)] flex gap-3">
-                    {project.liveUrl && (
-                      <a
-                        href={project.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 rounded-xl bg-[var(--secondary)] text-sm flex items-center gap-2 hover:bg-[var(--muted)] transition-all"
-                      >
-                        <Eye className="w-4 h-4" /> View Live
-                      </a>
-                    )}
-                    {project.caseStudyUrl && (
-                      <a
-                        href={project.caseStudyUrl}
-                        className="px-4 py-2 rounded-xl bg-[var(--secondary)] text-sm flex items-center gap-2 hover:bg-[var(--muted)] transition-all"
-                      >
-                        Case Study
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </motion.div>

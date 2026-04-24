@@ -1,355 +1,166 @@
-import { motion } from "motion/react";
-import { Mail, Trash2, Eye, Clock, User, Reply, Archive, Send, X } from "lucide-react";
-import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Mail, Trash2, Search, Filter, MoreVertical, CheckCircle, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../utils/supabase";
 
 interface Message {
   id: string;
   name: string;
   email: string;
+  subject: string;
   message: string;
-  timestamp: string;
-  read: boolean;
-  archived: boolean;
-  replied?: boolean;
-  replyText?: string;
-  replyTimestamp?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 export function MessagesViewer() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      message: "Hi Lateef, I'm interested in collaborating on a fintech project. I'd love to discuss your experience with payment integrations and how we might work together.",
-      timestamp: "2026-04-24T10:30:00",
-      read: false,
-      archived: false
-    },
-    {
-      id: "2",
-      name: "Sarah Smith",
-      email: "sarah@techcorp.com",
-      message: "Your AI engineering work is impressive! We're looking for someone with RAG pipeline experience for our startup. Would you be open to a conversation?",
-      timestamp: "2026-04-23T14:15:00",
-      read: true,
-      archived: false
-    },
-    {
-      id: "3",
-      name: "Mike Johnson",
-      email: "mike@startup.io",
-      message: "Saw your Somietech Connect project. We're building something similar and would love to pick your brain about scaling fintech infrastructure.",
-      timestamp: "2026-04-22T09:45:00",
-      read: true,
-      archived: false
-    },
-    {
-      id: "4",
-      name: "Emily Chen",
-      email: "emily@agency.com",
-      message: "We have a client who needs a fullstack developer with your exact skill set. Are you available for contract work?",
-      timestamp: "2026-04-21T16:20:00",
-      read: false,
-      archived: false
-    }
-  ]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [filter, setFilter] = useState<"all" | "unread" | "archived">("all");
-  const [showReplyBox, setShowReplyBox] = useState(false);
-  const [replyText, setReplyText] = useState("");
 
-  const handleMarkAsRead = (id: string) => {
-    setMessages(messages.map(m => m.id === id ? { ...m, read: true } : m));
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    setIsLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('to_user_id', session.user.id)
+        .order('created_at', { ascending: false });
+      if (data) setMessages(data);
+    }
+    setIsLoading(false);
   };
 
-  const handleArchive = (id: string) => {
-    setMessages(messages.map(m => m.id === id ? { ...m, archived: true } : m));
-    setSelectedMessage(null);
+  const markAsRead = async (id: string) => {
+    await supabase.from('messages').update({ is_read: true }).eq('id', id);
+    setMessages(messages.map(m => m.id === id ? { ...m, is_read: true } : m));
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this message?")) {
+  const deleteMessage = async (id: string) => {
+    if (confirm("Delete this message?")) {
+      await supabase.from('messages').delete().eq('id', id);
       setMessages(messages.filter(m => m.id !== id));
-      setSelectedMessage(null);
+      if (selectedMessage?.id === id) setSelectedMessage(null);
     }
-  };
-
-  const handleSelectMessage = (message: Message) => {
-    setSelectedMessage(message);
-    setShowReplyBox(false);
-    setReplyText("");
-    if (!message.read) {
-      handleMarkAsRead(message.id);
-    }
-  };
-
-  const handleSendReply = () => {
-    if (!selectedMessage || !replyText.trim()) return;
-
-    setMessages(messages.map(m =>
-      m.id === selectedMessage.id
-        ? {
-            ...m,
-            replied: true,
-            replyText: replyText,
-            replyTimestamp: new Date().toISOString()
-          }
-        : m
-    ));
-
-    setSelectedMessage({
-      ...selectedMessage,
-      replied: true,
-      replyText: replyText,
-      replyTimestamp: new Date().toISOString()
-    });
-
-    console.log("Sending reply to:", selectedMessage.email, "Message:", replyText);
-    alert(`Reply sent to ${selectedMessage.email}`);
-    setShowReplyBox(false);
-    setReplyText("");
-  };
-
-  const filteredMessages = messages.filter(m => {
-    if (filter === "unread") return !m.read && !m.archived;
-    if (filter === "archived") return m.archived;
-    return !m.archived;
-  });
-
-  const unreadCount = messages.filter(m => !m.read && !m.archived).length;
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) return `${diffMins} mins ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return `${diffDays} days ago`;
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl mb-2">Contact Messages</h1>
-          <p className="text-[var(--muted-foreground)]">
-            {unreadCount} unread message{unreadCount !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-xl transition-all ${
-              filter === "all"
-                ? "bg-[var(--orange)] text-white"
-                : "bg-[var(--secondary)] hover:bg-[var(--muted)]"
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter("unread")}
-            className={`px-4 py-2 rounded-xl transition-all ${
-              filter === "unread"
-                ? "bg-[var(--orange)] text-white"
-                : "bg-[var(--secondary)] hover:bg-[var(--muted)]"
-            }`}
-          >
-            Unread ({unreadCount})
-          </button>
-          <button
-            onClick={() => setFilter("archived")}
-            className={`px-4 py-2 rounded-xl transition-all ${
-              filter === "archived"
-                ? "bg-[var(--orange)] text-white"
-                : "bg-[var(--secondary)] hover:bg-[var(--muted)]"
-            }`}
-          >
-            Archived
-          </button>
-        </div>
+    <div className="h-full flex flex-col">
+      <div className="mb-8">
+        <h1 className="text-3xl mb-2 font-bold">Contact Messages</h1>
+        <p className="text-[var(--muted-foreground)]">Manage incoming inquiries from your portfolio</p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Messages List */}
-        <div className="lg:col-span-1 space-y-3 max-h-[700px] overflow-y-auto">
-          {filteredMessages.map((message) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => handleSelectMessage(message)}
-              className={`p-4 rounded-xl cursor-pointer transition-all ${
-                selectedMessage?.id === message.id
-                  ? "bg-[var(--orange-glow)] border-2 border-[var(--orange)]"
-                  : message.read
-                  ? "bg-[var(--card)] border border-[var(--border)] hover:border-[var(--orange)]"
-                  : "bg-[var(--card)] border-2 border-[var(--orange)]/40 hover:border-[var(--orange)]"
-              }`}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-[var(--orange-glow)] flex items-center justify-center">
-                    <User className="w-4 h-4 text-[var(--orange)]" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm">{message.name}</h4>
-                    <p className="text-xs text-[var(--muted-foreground)]">{message.email}</p>
-                  </div>
-                </div>
-                {!message.read && (
-                  <div className="w-2 h-2 rounded-full bg-[var(--orange)]" />
-                )}
-              </div>
-              <p className="text-sm text-[var(--muted-foreground)] line-clamp-2 mb-2">
-                {message.message}
-              </p>
-              <div className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-                <Clock className="w-3 h-3" />
-                {formatTimestamp(message.timestamp)}
-              </div>
-            </motion.div>
-          ))}
-
-          {filteredMessages.length === 0 && (
-            <div className="text-center py-12 text-[var(--muted-foreground)]">
-              <Mail className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>No messages found</p>
+      <div className="flex-1 grid lg:grid-cols-5 gap-6 min-h-[600px]">
+        {/* Message List */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-[var(--border)] overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-[var(--border)]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+              <input
+                type="text"
+                placeholder="Search messages..."
+                className="w-full pl-9 pr-4 py-2 rounded-xl bg-[var(--secondary)] border-none text-sm focus:ring-2 focus:ring-[var(--blue-primary)]/20 outline-none"
+              />
             </div>
-          )}
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            {isLoading ? (
+              <div className="p-8 text-center text-[var(--muted-foreground)]">Loading messages...</div>
+            ) : messages.length === 0 ? (
+              <div className="p-8 text-center text-[var(--muted-foreground)]">No messages yet.</div>
+            ) : (
+                messages.map((m) => (
+                    <button
+                        key={m.id}
+                        onClick={() => {
+                            setSelectedMessage(m);
+                            markAsRead(m.id);
+                        }}
+                        className={`w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--secondary)] transition-all relative ${selectedMessage?.id === m.id ? 'bg-[var(--secondary)]' : ''}`}
+                    >
+                        {!m.is_read && (
+                            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-[var(--blue-primary)]" />
+                        )}
+                        <div className="flex justify-between items-start mb-1">
+                            <h4 className={`font-bold transition-colors ${!m.is_read ? 'text-[var(--blue-dark)]' : 'text-[var(--muted-foreground)]'}`}>{m.name}</h4>
+                            <span className="text-[10px] text-[var(--muted-foreground)] font-bold">{new Date(m.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm font-bold text-[var(--blue-dark)] mb-1 truncate">{m.subject}</p>
+                        <p className="text-xs text-[var(--muted-foreground)] line-clamp-1">{m.message}</p>
+                    </button>
+                ))
+            )}
+          </div>
         </div>
 
-        {/* Message Detail */}
-        <div className="lg:col-span-2">
-          {selectedMessage ? (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)]"
-            >
-              <div className="flex items-start justify-between mb-6 pb-6 border-b border-[var(--border)]">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[var(--orange-glow)] flex items-center justify-center">
-                    <User className="w-6 h-6 text-[var(--orange)]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl mb-1">{selectedMessage.name}</h3>
-                    <p className="text-sm text-[var(--muted-foreground)] mb-2">{selectedMessage.email}</p>
-                    <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-                      <Clock className="w-3 h-3" />
-                      {new Date(selectedMessage.timestamp).toLocaleString()}
+        {/* Message Content */}
+        <div className="lg:col-span-3 bg-white rounded-3xl border border-[var(--border)] overflow-hidden shadow-sm flex flex-col">
+          <AnimatePresence mode="wait">
+            {selectedMessage ? (
+              <motion.div
+                key={selectedMessage.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col h-full"
+              >
+                <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--secondary)]/30">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--blue-primary)] text-white flex items-center justify-center font-black text-xl">
+                      {selectedMessage.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[var(--blue-dark)]">{selectedMessage.name}</h3>
+                      <p className="text-sm text-[var(--blue-primary)] font-bold">{selectedMessage.email}</p>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleArchive(selectedMessage.id)}
-                    className="w-10 h-10 rounded-lg bg-[var(--secondary)] flex items-center justify-center hover:bg-[var(--muted)] transition-all"
-                    title="Archive"
-                  >
-                    <Archive className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(selectedMessage.id)}
-                    className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <h4 className="text-sm text-[var(--muted-foreground)] mb-3">Message</h4>
-                <p className="text-[var(--foreground)] leading-relaxed whitespace-pre-wrap">
-                  {selectedMessage.message}
-                </p>
-              </div>
-
-              {/* Previous Reply */}
-              {selectedMessage.replied && selectedMessage.replyText && (
-                <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Reply className="w-4 h-4 text-green-500" />
-                    <h4 className="text-sm text-green-500">Your Reply</h4>
-                    <span className="text-xs text-[var(--muted-foreground)] ml-auto">
-                      {selectedMessage.replyTimestamp && formatTimestamp(selectedMessage.replyTimestamp)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-[var(--foreground)] leading-relaxed">
-                    {selectedMessage.replyText}
-                  </p>
-                </div>
-              )}
-
-              {/* Reply Box */}
-              {showReplyBox && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mb-6 p-4 rounded-xl bg-[var(--secondary)] border border-[var(--border)]"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm">Write Your Reply</h4>
-                    <button
-                      onClick={() => {
-                        setShowReplyBox(false);
-                        setReplyText("");
-                      }}
-                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  <div className="flex gap-2">
+                    <button 
+                        onClick={() => deleteMessage(selectedMessage.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
                     >
-                      <X className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
-                  <textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder={`Reply to ${selectedMessage.name}...`}
-                    className="w-full px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none min-h-32 mb-3"
-                  />
-                  <button
-                    onClick={handleSendReply}
-                    disabled={!replyText.trim()}
-                    className="w-full px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="w-4 h-4" /> Send Reply
-                  </button>
-                </motion.div>
-              )}
+                </div>
+                
+                <div className="flex-1 p-8 overflow-y-auto">
+                    <div className="flex items-center gap-2 text-xs font-black text-[var(--muted-foreground)] uppercase tracking-widest mb-4">
+                        <Clock className="w-4 h-4" /> Received on {new Date(selectedMessage.created_at).toLocaleString()}
+                    </div>
+                    <h2 className="text-2xl font-black text-[var(--blue-dark)] mb-8">{selectedMessage.subject}</h2>
+                    <div className="prose prose-blue max-w-none text-lg text-[var(--foreground)] leading-relaxed whitespace-pre-wrap bg-[var(--secondary)]/20 p-8 rounded-[32px] border border-[var(--border)]">
+                        {selectedMessage.message}
+                    </div>
+                </div>
 
-              <div className="flex gap-3">
-                {!showReplyBox && (
-                  <button
-                    onClick={() => setShowReplyBox(true)}
-                    className="flex-1 px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all"
-                  >
-                    <Reply className="w-4 h-4" /> Reply to Client
-                  </button>
-                )}
-                <a
-                  href={`mailto:${selectedMessage.email}`}
-                  className="px-6 py-3 bg-[var(--secondary)] rounded-xl flex items-center justify-center gap-2 hover:bg-[var(--muted)] transition-all"
-                >
-                  <Mail className="w-4 h-4" /> Open in Mail
-                </a>
+                <div className="p-6 border-t border-[var(--border)]">
+                    <a
+                        href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
+                        className="w-full py-4 bg-[var(--blue-dark)] text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[var(--blue-primary)] transition-all shadow-lg"
+                    >
+                        <Mail className="w-5 h-5" />
+                        Reply by Email
+                    </a>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] p-12 text-center">
+                <div className="w-20 h-20 rounded-full bg-[var(--secondary)] flex items-center justify-center mb-6">
+                    <Mail className="w-10 h-10 opacity-20" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Select a Message</h3>
+                <p>Choose an inquiry from the list to view its contents and reply.</p>
               </div>
-            </motion.div>
-          ) : (
-            <div className="h-full flex items-center justify-center p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-              <div className="text-center text-[var(--muted-foreground)]">
-                <Mail className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p>Select a message to view details</p>
-              </div>
-            </div>
-          )}
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
