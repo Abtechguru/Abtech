@@ -256,6 +256,64 @@ export function Settings() {
             </div>
           </div>
 
+          {/* Teaching Section */}
+          <div className="mb-6 p-6 rounded-2xl bg-[var(--blue-primary)]/5 border border-[var(--blue-primary)]/10">
+            <h3 className="text-xl font-bold mb-6 text-[var(--blue-dark)]">Teaching Career Integration</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold mb-2">Tutor Description</label>
+                <textarea
+                  value={profile.tutorDescription}
+                  onChange={(e) => setProfile({ ...profile, tutorDescription: e.target.value })}
+                  placeholder="Describe your teaching philosophy and expertise..."
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none min-h-[150px]"
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-bold mb-2">Tuteria Profile Link</label>
+                    <input
+                        type="url"
+                        value={profile.tutorLink}
+                        onChange={(e) => setProfile({ ...profile, tutorLink: e.target.value })}
+                        placeholder="https://tutors.tuteria.com/profile/..."
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold mb-2">Exam Preparation Expert</label>
+                    <input
+                        type="text"
+                        value={profile.examExpert}
+                        onChange={(e) => setProfile({ ...profile, examExpert: e.target.value })}
+                        placeholder="e.g. WAEC, JAMB, Cambridge Checkpoint"
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold mb-2">Teaching Modality</label>
+                    <input
+                        type="text"
+                        value={profile.teachingModality}
+                        onChange={(e) => setProfile({ ...profile, teachingModality: e.target.value })}
+                        placeholder="e.g. Physical lessons only"
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold mb-2">Curriculum Focus</label>
+                    <input
+                        type="text"
+                        value={profile.curriculum}
+                        onChange={(e) => setProfile({ ...profile, curriculum: e.target.value })}
+                        placeholder="e.g. Nigerian & British Curriculum"
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-[var(--border)] focus:border-[var(--blue-primary)] focus:outline-none"
+                    />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={handleSaveProfile}
             disabled={isSaving}

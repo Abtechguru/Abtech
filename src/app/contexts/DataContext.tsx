@@ -72,6 +72,11 @@ interface ProfileData {
   yearsExperience: string;
   projectsDelivered: string;
   activeUsers: string;
+  tutorDescription?: string;
+  tutorLink?: string;
+  examExpert?: string;
+  teachingModality?: string;
+  curriculum?: string;
 }
 
 interface Message {
@@ -112,19 +117,24 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 const DEFAULT_PROFILE: ProfileData = {
   fullName: "Lateef Abiodun",
-  title: "AI-Powered Fullstack Developer",
+  title: "AI-Powered Fullstack Developer & Expert Educator",
   location: "Lagos, Nigeria",
   email: "careernig24@gmail.com",
   phone: "+234 XXX XXX XXXX",
-  bio: "Fullstack Engineer & Data Specialist crafting production-grade AI systems, fintech platforms, and scalable web applications.",
+  bio: "Fullstack Engineer & Math Specialist crafting production-grade AI systems and empowering the next generation of engineers.",
   github: "https://github.com/lateefabiodun",
   linkedin: "https://linkedin.com/in/lateefabiodun",
   behance: "https://behance.net/lateefabiodun",
   website: "https://lateefabiodun.dev",
   viewCount: 0,
-  yearsExperience: "3+",
+  yearsExperience: "5+",
   projectsDelivered: "50+",
-  activeUsers: "10K+"
+  activeUsers: "10K+",
+  tutorDescription: "I am an accomplished mathematics, physics, and further mathematics teacher. With a rich background in education, I have cultivated a dynamic teaching approach that not only imparts knowledge but also sparks curiosity and critical thinking.\n\nMy qualifications include National Diploma in Agriculture and Bio Environmental Engineering and Degree in Electrical and electronics engineering, equipping me with the theoretical foundation and practical skills to deliver high-quality education.",
+  tutorLink: "https://tutors.tuteria.com/profile/lateefafeez28",
+  examExpert: "WAEC, JAMB, NECO, JUPEB, BECE, Cambridge Checkpoint",
+  teachingModality: "Physical lessons only",
+  curriculum: "Nigerian & British Curriculum"
 };
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
@@ -195,7 +205,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           viewCount: profile.view_count || 0,
           yearsExperience: profile.years_experience || "3+",
           projectsDelivered: profile.projects_delivered || "50+",
-          activeUsers: profile.active_users || "10K+"
+          activeUsers: profile.active_users || "10K+",
+          tutorDescription: profile.tutor_description || "",
+          tutorLink: profile.tutor_link || "",
+          examExpert: profile.exam_expert || "",
+          teachingModality: profile.teaching_modality || "",
+          curriculum: profile.curriculum || ""
         });
       }
 
@@ -290,7 +305,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             viewCount: profile.view_count || 0,
             yearsExperience: profile.years_experience || "3+",
             projectsDelivered: profile.projects_delivered || "50+",
-            activeUsers: profile.active_users || "10K+"
+            activeUsers: profile.active_users || "10K+",
+            tutorDescription: profile.tutor_description || "",
+            tutorLink: profile.tutor_link || "",
+            examExpert: profile.exam_expert || "",
+            teachingModality: profile.teaching_modality || "",
+            curriculum: profile.curriculum || ""
           });
         }
   
@@ -512,6 +532,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         years_experience: data.yearsExperience,
         projects_delivered: data.projectsDelivered,
         active_users: data.activeUsers,
+        tutor_description: data.tutorDescription,
+        tutor_link: data.tutorLink,
+        exam_expert: data.examExpert,
+        teaching_modality: data.teachingModality,
+        curriculum: data.curriculum,
         updated_at: new Date().toISOString()
       })
       .eq('id', session.user.id);

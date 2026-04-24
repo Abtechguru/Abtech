@@ -9,6 +9,7 @@ import { TestimonialsSection } from "./TestimonialsSection";
 import { ModernAbout } from "./ModernAbout";
 import { ModernContact } from "./ModernContact";
 import { CurrencyConverter } from "../ui/CurrencyConverter";
+import { TeachingSection } from "./TeachingSection";
 import { useData } from "../../contexts/DataContext";
 
 export function ModernPortfolio() {
@@ -44,6 +45,7 @@ export function ModernPortfolio() {
             <ServicesSection />
             <TestimonialsSection />
             <ModernAbout />
+            <TeachingSection />
             <ModernContact />
           </div>
 
@@ -64,6 +66,7 @@ export function ModernPortfolio() {
                   <a href="#" className="hover:text-[var(--blue-primary)] transition-colors">Home</a>
                   <a href="#projects" className="hover:text-[var(--blue-primary)] transition-colors text-[var(--blue-dark)]">Projects</a>
                   <a href="#about" className="hover:text-[var(--blue-primary)] transition-colors">About</a>
+                  <a href="#teaching" className="hover:text-[var(--blue-primary)] transition-colors">Teaching</a>
                   <a href="#contact" className="hover:text-[var(--blue-primary)] transition-colors">Contact</a>
                 </div>
               </div>
