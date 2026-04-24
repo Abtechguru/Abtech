@@ -21,7 +21,6 @@ export function Sidebar() {
     { icon: Mail, href: `mailto:${profileData.email}`, label: "Email" }
   ];
 
-  // Close sidebar on navigation (for mobile)
   const handleNavClick = (id: string) => {
     setActiveSection(id);
     setIsOpen(false);
@@ -32,9 +31,9 @@ export function Sidebar() {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-6 left-6 z-[60] w-12 h-12 rounded-2xl bg-white shadow-xl border border-[var(--border)] flex items-center justify-center text-[var(--blue-dark)] hover:text-[var(--blue-primary)] transition-all"
+        className="lg:hidden fixed top-6 right-6 z-[60] w-14 h-14 rounded-2xl bg-white shadow-2xl border border-[var(--border)] flex items-center justify-center text-[var(--blue-dark)] hover:text-[var(--blue-primary)] transition-all"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
       </button>
 
       {/* Backdrop for mobile */}
@@ -45,29 +44,30 @@ export function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      <aside className={`fixed top-0 bottom-0 w-72 bg-white border-r border-[var(--border)] flex flex-col z-50 transition-all duration-500 lg:left-0 ${isOpen ? 'left-0' : '-left-72'}`}>
-        {/* Profile Photo Section */}
-        <div className="p-10 pb-6 flex flex-col items-center">
+      <aside className={`fixed top-0 bottom-0 w-80 bg-white border-r border-[var(--border)] flex flex-col z-50 transition-all duration-700 lg:left-0 ${isOpen ? 'left-0' : '-left-80'} shadow-sm`}>
+        {/* Profile Card Section */}
+        <div className="p-8 pt-12 flex flex-col items-center">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", duration: 0.8 }}
-            className="relative group mb-4"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", duration: 1 }}
+            className="relative mb-8"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--blue-primary)] to-[var(--purple)] rounded-[32px] rotate-6 blur-md opacity-20 group-hover:rotate-12 transition-transform duration-500" />
+             {/* Glow effect behind photo */}
+            <div className="absolute inset-0 bg-[var(--blue-primary)] opacity-10 blur-2xl rounded-full" />
             
-            <div className="relative w-36 h-36 rounded-[32px] bg-white border-4 border-white shadow-xl overflow-hidden p-0.5">
-              <div className="w-full h-full rounded-[28px] overflow-hidden bg-[var(--secondary)]">
+            <div className="relative w-40 h-40 rounded-[48px] bg-white border-4 border-white shadow-2xl overflow-hidden p-0.5 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+              <div className="w-full h-full rounded-[44px] overflow-hidden bg-[var(--secondary)]">
                 {profileData.profilePhoto ? (
                   <img
                     src={profileData.profilePhoto}
                     alt={profileData.fullName}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -78,13 +78,22 @@ export function Sidebar() {
             </div>
           </motion.div>
           
-          <h2 className="text-xl font-bold text-[var(--blue-dark)] text-center">{profileData.fullName}</h2>
-          <p className="text-sm text-[var(--muted-foreground)] text-center mt-1">{profileData.title}</p>
+          <div className="text-center w-full px-4">
+              <h2 className="text-2xl font-black text-[var(--blue-dark)] leading-tight mb-2 tracking-tight">
+                  {profileData.fullName}
+              </h2>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="w-8 h-[2px] bg-[var(--blue-primary)]/20 rounded-full" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--blue-primary)] bg-[var(--blue-primary)]/5 px-3 py-1 rounded-full border border-[var(--blue-primary)]/10">
+                    {profileData.title || "Fullstack Engineer"}
+                  </p>
+                  <div className="w-8 h-[2px] bg-[var(--blue-primary)]/20 rounded-full" />
+              </div>
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-8 mt-4">
-          <div className="space-y-3">
+        <nav className="flex-1 px-8 py-8 space-y-3">
             {navItems.map((item, index) => (
               <motion.a
                 key={item.id}
@@ -93,31 +102,30 @@ export function Sidebar() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={() => handleNavClick(item.id)}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all ${
+                className={`flex items-center gap-4 px-6 py-5 rounded-[24px] font-bold transition-all group ${
                   activeSection === item.id
-                    ? "text-[var(--blue-primary)] bg-[var(--blue-primary)]/5 shadow-[0_0_20px_rgba(59,77,201,0.05)] border border-[var(--blue-primary)]/10"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--blue-primary)] hover:bg-[var(--secondary)]"
+                    ? "text-[var(--blue-primary)] bg-[var(--blue-primary)]/[0.04] border border-[var(--blue-primary)]/10 shadow-sm"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--blue-dark)] hover:bg-[var(--secondary)]"
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${activeSection === item.id ? 'stroke-[3px]' : 'stroke-[2px]'}`} />
-                <span>{item.label}</span>
+                <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${activeSection === item.id ? 'stroke-[3px]' : 'stroke-[2px]'}`} />
+                <span className="text-lg">{item.label}</span>
               </motion.a>
             ))}
-          </div>
         </nav>
 
-        {/* Footer Info */}
-        <div className="px-10 py-8 border-t border-[var(--border)]">
-          <div className="flex justify-center gap-4 mb-6">
+        {/* Action Footer */}
+        <div className="p-10 bg-[var(--secondary)]/30 border-t border-[var(--border)]">
+          <div className="flex justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-[var(--border)] mb-8">
             {socialLinks.map((social, index) => (
               <motion.a
                 key={index}
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-xl bg-[var(--secondary)] flex items-center justify-center text-[var(--blue-dark)] hover:bg-[var(--blue-primary)] hover:text-white transition-all shadow-sm"
+                whileHover={{ scale: 1.2, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 flex items-center justify-center text-[var(--blue-dark)] hover:text-[var(--blue-primary)] transition-colors"
                 title={social.label}
               >
                 <social.icon className="w-5 h-5" />
@@ -125,11 +133,9 @@ export function Sidebar() {
             ))}
           </div>
           
-          <div className="flex items-center justify-center gap-3 text-xs font-bold text-[var(--muted-foreground)]">
-            <span className="cursor-pointer hover:text-[var(--blue-primary)] transition-colors">EN</span>
-            <div className="w-1 h-1 rounded-full bg-[var(--border)]" />
-            <span className="cursor-pointer hover:text-[var(--blue-primary)] transition-colors">FR</span>
-          </div>
+          <p className="text-[10px] text-center font-black uppercase tracking-[0.3em] text-[var(--muted-foreground)]">
+              © {new Date().getFullYear()} Developed by Labtech
+          </p>
         </div>
       </aside>
     </>
