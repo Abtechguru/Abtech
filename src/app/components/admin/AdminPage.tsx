@@ -7,6 +7,7 @@ import { ExperienceManager } from "./ExperienceManager";
 import { MessagesViewer } from "./MessagesViewer";
 import { Analytics } from "./Analytics";
 import { ServicesManager } from "./ServicesManager";
+import { TeachingManager } from "./TeachingManager";
 import { Settings } from "./Settings";
 import { AdminFloatingButton } from "./AdminFloatingButton";
 import { useData } from "../../contexts/DataContext";
@@ -35,6 +36,8 @@ export function AdminPage({ onLogout }: AdminPageProps) {
         return <MessagesViewer />;
       case "analytics":
         return <Analytics />;
+      case "teaching":
+        return <TeachingManager />;
       case "settings":
         return <Settings />;
       default:

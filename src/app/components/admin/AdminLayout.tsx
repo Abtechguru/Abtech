@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  GraduationCap
 } from "lucide-react";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
     { id: "experience", label: "Experience", icon: Briefcase },
     { id: "messages", label: "Messages", icon: MessageSquare },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "teaching", label: "Teaching Career", icon: GraduationCap },
     { id: "settings", label: "Settings", icon: Settings }
   ];
 
