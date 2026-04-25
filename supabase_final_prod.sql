@@ -87,3 +87,17 @@ BEGIN
     ALTER TABLE public.profiles ADD COLUMN calendly_link TEXT;
   END IF;
 END $$;
+
+-- STEP 6: Profiles RLS Policies
+-- Ensure RLS is enabled
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to profiles
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
+CREATE POLICY "Profiles are viewable by everyone" ON public.profiles
+  FOR SELECT USING (true);
+
+-- Allow authenticated users to update their own profile
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+CREATE POLICY "Users can update their own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);

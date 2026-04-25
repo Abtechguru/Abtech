@@ -18,12 +18,16 @@ export function TeachingManager() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-        await setProfileData(profile);
-        await setTeachingMedia(currentMedia);
+        const profileResp = await setProfileData(profile);
+        if (profileResp.error) throw profileResp.error;
+
+        const mediaResp = await setTeachingMedia(currentMedia);
+        if (mediaResp.error) throw mediaResp.error;
+
         alert("Teaching profile and media updated successfully!");
-    } catch (error) {
+    } catch (error: any) {
         console.error("Save error:", error);
-        alert("Failed to save changes.");
+        alert("Failed to save changes: " + (error.message || "Unknown error"));
     } finally {
         setIsSaving(false);
     }
