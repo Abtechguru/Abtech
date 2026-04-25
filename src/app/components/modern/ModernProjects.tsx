@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ExternalLink, ArrowRight, Play, Maximize2 } from "lucide-react";
+import { ExternalLink, ArrowRight, Play, Maximize2, ImageOff } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
 import { useState } from "react";
 import { MediaGallery } from "../ui/MediaGallery";
@@ -73,7 +73,7 @@ export function ModernProjects() {
                     </div>
                   </div>
 
-                  {project.media && project.media.length > 0 ? (
+                  {project.media && project.media.length > 0 && !project.media[0].url.startsWith('blob:') ? (
                     <>
                       {project.media[0].type === "video" ? (
                         <div className="relative w-full h-full">
@@ -93,22 +93,29 @@ export function ModernProjects() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           onError={(e) => {
                             // Fallback to logo if media image fails
-                            if (project.logo) (e.target as HTMLImageElement).src = project.logo;
+                            if (project.logo) {
+                                (e.target as HTMLImageElement).src = project.logo;
+                            } else {
+                                (e.target as HTMLElement).style.display = 'none';
+                            }
                           }}
                         />
                       )}
                     </>
-                  ) : project.logo ? (
+                  ) : project.logo && !project.logo.startsWith('blob:') ? (
                     <img
                       src={project.logo}
                       alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
-                    <>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-20`} />
-                      <div className="absolute inset-0 bg-[var(--blue-primary)]/5" />
-                    </>
+                    <div className="relative w-full h-full flex flex-col items-center justify-center p-8 bg-[var(--secondary)]/10">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-10`} />
+                      <ImageOff className="w-12 h-12 text-[var(--muted-foreground)] mb-4 opacity-20" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)] opacity-40 text-center">
+                        Media asset pending re-upload
+                      </p>
+                    </div>
                   )}
                   
                   <div className="absolute top-4 right-4 z-20">

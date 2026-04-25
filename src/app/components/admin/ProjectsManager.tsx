@@ -288,8 +288,13 @@ export function ProjectsManager() {
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex gap-6">
                     {project.media && project.media.length > 0 ? (
-                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-[var(--border)] flex-shrink-0">
-                        {project.media[0].type === "video" ? (
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-[var(--border)] flex-shrink-0 bg-[var(--secondary)]/30">
+                        {project.media[0].url.startsWith('blob:') ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
+                                <ImageIcon className="w-4 h-4 text-red-400 mb-1" />
+                                <span className="text-[8px] font-black uppercase text-red-500">Reset Required</span>
+                            </div>
+                        ) : project.media[0].type === "video" ? (
                            <div className="w-full h-full bg-black flex items-center justify-center">
                              <Play className="w-6 h-6 text-white" />
                            </div>
