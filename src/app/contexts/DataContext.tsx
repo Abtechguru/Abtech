@@ -596,7 +596,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      projects, services, skills, testimonials, experience, profileData, messages,
+      projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
       isAuthenticated: !!session, isLoading, user: session?.user ?? null,
       addProject, updateProject, deleteProject, incrementProjectView, incrementProfileView,
       markMessageRead, deleteMessage,

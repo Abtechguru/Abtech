@@ -4,7 +4,7 @@ import { useData } from "../../contexts/DataContext";
 import { Helmet } from "react-helmet-async";
 
 export function ModernTeaching() {
-  const { profileData } = useData();
+  const { profileData, teachingMedia } = useData();
 
   const handleBack = () => {
     window.history.pushState({}, "", "/");
@@ -155,7 +155,7 @@ export function ModernTeaching() {
                 </div>
 
                 <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                    {teachingMedia.map((m, i) => (
+                    {teachingMedia.map((m: any, i: number) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0, scale: 0.9 }}
