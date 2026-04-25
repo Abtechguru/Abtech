@@ -1,11 +1,11 @@
 import { motion } from "motion/react";
-import { Plus, Edit, Trash2, Eye, Save, X, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Save, X, Image as ImageIcon, Play } from "lucide-react";
 import { useState } from "react";
 import { MediaUploader } from "./MediaUploader";
 import { useData } from "../../contexts/DataContext";
 
 interface MediaFile {
-  id?: string;
+  id: string;
   type: "image" | "video" | "logo";
   url: string;
   name: string;
