@@ -9,12 +9,15 @@ ON CONFLICT (id) DO NOTHING;
 
 -- STEP 3: Set up Storage Policies for the 'media' bucket
 -- Allow public read access to media
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'media' );
 
 -- Allow authenticated users to upload to the media bucket
+DROP POLICY IF EXISTS "Authenticated Upload" ON storage.objects;
 CREATE POLICY "Authenticated Upload" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' AND auth.role() = 'authenticated' );
 
 -- Allow owners to delete their own media
+DROP POLICY IF EXISTS "Owner Delete" ON storage.objects;
 CREATE POLICY "Owner Delete" ON storage.objects FOR DELETE USING ( bucket_id = 'media' AND auth.uid() = owner );
 
 
@@ -65,8 +68,10 @@ CREATE TABLE IF NOT EXISTS public.teaching_media (
 
 ALTER TABLE public.teaching_media ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Teaching media is viewable by everyone" ON public.teaching_media;
 CREATE POLICY "Teaching media is viewable by everyone" ON public.teaching_media
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can manage their own teaching media" ON public.teaching_media;
 CREATE POLICY "Users can manage their own teaching media" ON public.teaching_media
   FOR ALL USING (profile_id = auth.uid());
