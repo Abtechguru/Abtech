@@ -1,127 +1,151 @@
 import { motion } from "motion/react";
-import { MessageCircle, Lightbulb, Code, Rocket, ArrowRight } from "lucide-react";
+import { MessageSquare, Lightbulb, Code, Rocket, ArrowRight, CheckCircle2, ChevronRight } from "lucide-react";
 
 export function ProcessSection() {
   const conversation = [
     {
       speaker: "client",
-      message: "I need a custom web application for my business. We need AI integration and real-time features.",
-      icon: "💼"
+      message: "I need a scalable web architecture with AI integrations and sub-second performance. Can you handle it?",
+      icon: "👔",
+      label: "Strategic Partner"
     },
     {
       speaker: "me",
-      message: "Alright, great! I'll handle everything—from system architecture and database design to frontend development and AI integration. I'll share the design mockups first. Once validated, I'll develop your application and deploy it live!",
-      icon: "💻"
-    },
-    {
-      speaker: "client",
-      message: "Perfect, when do we start :)?",
-      icon: "✨"
-    },
-    {
-      speaker: "me",
-      message: "Now!",
-      icon: "🚀",
-      highlight: true
+      message: "Absolutely. I architect end-to-end systems from schema design to edge deployment. We'll start with detailed mockups, build with modern tech, and scale to your traffic.",
+      icon: "👨‍💻",
+      label: "Lateef Abiodun"
     }
   ];
 
   const steps = [
     {
+      id: "01",
       icon: Lightbulb,
-      title: "Discovery & Analysis",
-      description: "Understanding your business needs, target audience, and technical requirements. I analyze competitors and market positioning to create the optimal solution."
+      title: "Discovery & Blueprinting",
+      tags: ["System Architecture", "Market Analysis"],
+      description: "We deep-dive into your business logic and technical constraints to build a foolproof development roadmap."
     },
     {
+      id: "02",
       icon: Code,
-      title: "Design & Development",
-      description: "Creating beautiful UI/UX designs, then building robust, scalable systems. Full-stack development with AI integration, database optimization, and security best practices."
+      title: "Development & AI Sync",
+      tags: ["Fullstack", "LLM Integration"],
+      description: "Crafting the engine with clean code and integrating intelligent layers to automate complex business workflows."
     },
     {
+      id: "03",
       icon: Rocket,
-      title: "Deployment & Training",
-      description: "Launching your application with proper hosting, monitoring, and documentation. Training sessions included so you can manage content and understand your system."
+      title: "Launch & Optimization",
+      tags: ["Vercel/AWS", "Monitoring"],
+      description: "Going live with robust CI/CD pipelines and continuous performance monitoring to ensure zero-downtime growth."
     }
   ];
 
   return (
-    <section id="process" className="py-24 px-12 bg-[var(--muted)]">
-      <div className="max-w-6xl mx-auto">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
+    <section id="process" className="py-32 px-6 md:px-12 bg-white relative overflow-hidden">
+      {/* Structural Elements */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid lg:grid-cols-12 gap-16 items-center">
+            
+            {/* Context Side */}
+            <div className="lg:col-span-5 space-y-12">
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                >
+                    <span className="px-5 py-2 rounded-full bg-[var(--blue-primary)]/5 text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-[0.3em] mb-8 inline-block border border-[var(--blue-primary)]/10">
+                        Methodology
+                    </span>
+                    <h2 className="text-5xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter mb-8 leading-[0.9]">
+                        How I Build <br />
+                        <span className="text-[var(--blue-primary)] uppercase italic">Excellence</span>
+                    </h2>
+                    <p className="text-xl text-[var(--muted-foreground)] font-medium max-w-md">
+                        Transforming complex requirements into streamlined digital products through a rigorous three-phase audit and build process.
+                    </p>
+                </motion.div>
+
+                {/* Mini Conversation UI */}
+                <div className="space-y-4 max-w-sm">
+                    {conversation.map((msg, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.2 }}
+                            className={`p-4 rounded-2xl border ${msg.speaker === 'me' ? 'bg-[var(--blue-dark)] text-white border-transparent shadow-xl' : 'bg-white border-[var(--border)] shadow-sm'}`}
+                        >
+                            <div className="flex items-center gap-2 mb-2 opacity-50">
+                                <span className="text-xs font-black uppercase tracking-widest">{msg.label}</span>
+                                <div className="h-[1px] flex-1 bg-current opacity-20" />
+                            </div>
+                            <p className="text-sm font-bold leading-relaxed">{msg.message}</p>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Steps Side */}
+            <div className="lg:col-span-7 space-y-6">
+                {steps.map((step, index) => (
+                    <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group relative p-8 md:p-10 rounded-[32px] bg-[var(--secondary)]/30 border border-[var(--border)] hover:border-[var(--blue-primary)] hover:bg-white transition-all duration-500 overflow-hidden"
+                    >
+                        <div className="absolute -right-4 -top-4 text-8xl font-black text-[var(--blue-primary)]/5 select-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700 font-mono">
+                            {step.id}
+                        </div>
+                        
+                        <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
+                            <div className="w-16 h-16 rounded-2xl bg-white border border-[var(--border)] flex items-center justify-center group-hover:bg-[var(--blue-primary)] transition-colors duration-500 shadow-sm">
+                                <step.icon className="w-8 h-8 text-[var(--blue-primary)] group-hover:text-white transition-colors duration-500" />
+                            </div>
+                            
+                            <div className="flex-1 space-y-4">
+                                <div className="flex flex-wrap gap-2">
+                                    {step.tags.map((tag, t) => (
+                                        <span key={t} className="text-[10px] font-black uppercase tracking-widest text-[var(--blue-primary)] px-2 py-1 bg-[var(--blue-primary)]/5 rounded-lg">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                                <h3 className="text-2xl font-black text-[var(--blue-dark)] uppercase italic tracking-tighter">{step.title}</h3>
+                                <p className="text-[var(--muted-foreground)] font-medium leading-relaxed max-w-lg">
+                                    {step.description}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
+        </div>
+
+        {/* Success Metrics Overlay */}
+        <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            className="mt-24 pt-12 border-t border-[var(--border)] grid grid-cols-2 md:grid-cols-4 gap-8"
         >
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <span className="text-6xl font-mono text-[var(--muted-foreground)]">09</span>
-          </div>
-          <h2 className="text-5xl font-bold mb-4">
-            You must be <span className="text-[var(--blue-primary)]">wondering</span>
-          </h2>
-          <p className="text-xl text-[var(--muted-foreground)]">...</p>
+            {[
+                { label: "Deployment Speed", val: "2X Faster" },
+                { label: "Uptime SLA", val: "99.9%" },
+                { label: "AI Accuracy", val: "95%+" },
+                { label: "Support", val: "24/7 Live" }
+            ].map((metric, m) => (
+                <div key={m} className="text-center md:text-left">
+                    <div className="text-xl font-black text-[var(--blue-dark)] mb-1">{metric.val}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">{metric.label}</div>
+                </div>
+            ))}
         </motion.div>
-
-        {/* Conversation */}
-        <div className="max-w-4xl mx-auto mb-20">
-          {conversation.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: item.speaker === "client" ? -40 : 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className={`mb-6 flex ${item.speaker === "client" ? "justify-start" : "justify-end"}`}
-            >
-              <div
-                className={`max-w-xl p-6 rounded-2xl ${
-                  item.speaker === "client"
-                    ? "bg-white border border-[var(--border)]"
-                    : item.highlight
-                    ? "bg-[var(--blue-primary)] text-white"
-                    : "bg-[var(--blue-primary)]/10 border border-[var(--blue-primary)]/30"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">{item.icon}</span>
-                  <p className={`text-lg leading-relaxed ${item.highlight ? "font-semibold text-2xl" : ""}`}>
-                    {item.message}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Process Steps */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className="relative"
-            >
-              <div className="bg-white p-8 rounded-2xl border border-[var(--border)] hover:border-[var(--blue-primary)] transition-all h-full">
-                <div className="w-16 h-16 rounded-2xl bg-[var(--blue-primary)]/10 flex items-center justify-center mb-6">
-                  <step.icon className="w-8 h-8 text-[var(--blue-primary)]" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
-                <p className="text-[var(--muted-foreground)] leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-              {index < steps.length - 1 && (
-                <div className="hidden md:flex absolute top-1/2 -right-4 w-8 h-8 items-center justify-center">
-                  <ArrowRight className="w-6 h-6 text-[var(--blue-primary)]" />
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Star, Quote, User } from "lucide-react";
+import { Star, Quote, User, ArrowRight, Check } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
 
 export function TestimonialsSection() {
@@ -8,91 +8,120 @@ export function TestimonialsSection() {
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <section className="py-24 px-6 md:px-12 bg-[var(--secondary)]/30">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--blue-primary)]/5 rounded-full text-[var(--blue-primary)] text-sm font-bold mb-4">
-            <Star className="w-4 h-4 fill-[var(--blue-primary)]" />
-            <span>Success Stories</span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-4">
-            They <span className="text-[var(--blue-primary)]">trusted me</span>
-          </h2>
-          <div className="w-24 h-1 bg-[var(--blue-primary)] mx-auto rounded-full" />
-        </motion.div>
+    <section className="py-32 px-6 md:px-12 bg-white relative overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_90%_10%,var(--blue-primary)/0.02_0%,transparent_50%)] pointer-events-none" />
 
+      <div className="max-w-7xl mx-auto relative z-10">
+        
+        {/* Header Block */}
+        <div className="text-center mb-24 max-w-3xl mx-auto">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+            >
+                <div className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--blue-primary)]/5 border border-[var(--blue-primary)]/10 rounded-full text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-[0.4em] mb-8">
+                    <Star className="w-4 h-4 fill-[var(--blue-primary)]" />
+                    <span>User Sentiments</span>
+                </div>
+                <h2 className="text-5xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter leading-[0.9] mb-8 uppercase italic">
+                    Universal <br />
+                    <span className="text-[var(--blue-primary)] not-italic">Endorsements</span>
+                </h2>
+                <p className="text-xl text-[var(--muted-foreground)] font-medium">
+                    Verified feedback from partners, founders, and students who have experienced the standard of excellence.
+                </p>
+            </motion.div>
+        </div>
+
+        {/* Masonry-style Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -8 }}
-              className="bg-white border border-[var(--border)] rounded-[32px] p-8 hover:border-[var(--blue-primary)]/30 hover:shadow-2xl transition-all relative group"
+              className="group relative p-10 rounded-[40px] bg-white border border-[var(--border)] hover:border-[var(--blue-primary)] hover:shadow-2xl hover:shadow-blue-900/5 transition-all duration-500 overflow-hidden"
             >
-              <div className="absolute top-8 right-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Quote className="w-12 h-12 text-[var(--blue-primary)]" />
+              <div className="absolute top-10 right-10">
+                <Quote className="w-12 h-12 text-[var(--blue-primary)] opacity-5 group-hover:opacity-10 transition-opacity rotate-12" />
               </div>
 
-              <div className="flex gap-1 mb-6">
+              <div className="flex gap-1 mb-8">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[var(--blue-primary)] text-[var(--blue-primary)]" />
+                  <Star key={i} className="w-3.5 h-3.5 fill-[var(--blue-primary)] text-[var(--blue-primary)]" />
                 ))}
               </div>
 
-              <p className="text-[var(--foreground)] text-lg leading-relaxed mb-8 italic relative z-10">
+              <blockquote className="text-[var(--blue-dark)] text-lg font-bold leading-relaxed mb-10 italic relative z-10 opacity-90">
                 "{testimonial.feedback}"
-              </p>
+              </blockquote>
 
-              <div className="flex items-center gap-4 pt-8 border-t border-[var(--border)]">
-                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[var(--secondary)] flex-shrink-0">
+              <div className="flex items-center gap-5 pt-8 border-t border-[var(--border)] mt-auto">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)] flex-shrink-0 group-hover:rotate-3 transition-transform duration-500">
                   {testimonial.clientImage ? (
                     <img src={testimonial.clientImage} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-[var(--muted-foreground)]" />
+                        <User className="w-7 h-7 text-[var(--muted-foreground)]" />
                     </div>
                   )}
                 </div>
                 <div>
-                  <div className="font-bold text-[var(--blue-dark)]">{testimonial.clientName}</div>
-                  <div className="text-sm text-[var(--muted-foreground)] font-medium">{testimonial.clientRole}</div>
-                  <div className="text-xs text-[var(--blue-primary)] font-black uppercase tracking-wider">{testimonial.company}</div>
+                  <h4 className="font-black text-[var(--blue-dark)] text-lg leading-tight mb-1">{testimonial.clientName}</h4>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--blue-primary)]">{testimonial.clientRole}</p>
+                  <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{testimonial.company}</p>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
 
+        {/* Global Impact Counter */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
-          className="mt-20 text-center"
+          transition={{ delay: 0.4 }}
+          className="mt-32 p-12 md:p-20 bg-[var(--blue-dark)] rounded-[64px] text-white relative overflow-hidden group shadow-3xl shadow-blue-900/40"
         >
-          <div className="inline-flex flex-wrap items-center justify-center gap-8 md:gap-12 p-8 md:p-10 bg-white border border-[var(--border)] rounded-[40px] shadow-xl">
+          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_center,var(--blue-primary)/0.2_0%,transparent_100%)] opacity-30 pointer-events-none" />
+          
+          <div className="relative z-10 grid md:grid-cols-3 gap-16 md:gap-4 items-center">
             <div className="text-center">
-              <div className="text-4xl font-bold text-[var(--blue-primary)] mb-1">{profileData.projectsDelivered}</div>
-              <div className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Success Projects</div>
+              <div className="text-6xl md:text-8xl font-black text-white mb-4 tracking-tighter tabular-nums">{profileData.projectsDelivered}</div>
+              <div className="text-sm font-black uppercase tracking-[0.4em] text-white/40">Projects Shipped</div>
             </div>
-            <div className="hidden md:block w-px h-12 bg-[var(--border)]" />
+            
+            <div className="hidden md:block w-px h-32 bg-white/10 mx-auto" />
+            
+            <div className="text-center flex flex-col items-center">
+                <div className="w-20 h-20 rounded-full bg-[var(--blue-primary)] flex items-center justify-center mb-8 shadow-2xl shadow-blue-900/50 group-hover:scale-110 transition-transform duration-700">
+                    <Check className="w-10 h-10 text-white" />
+                </div>
+                <div className="text-2xl font-black uppercase tracking-[0.2em] italic mb-2">99% Retention</div>
+                <p className="text-sm font-medium text-white/50">Industry Leading Partnership Lifetime</p>
+            </div>
+
+            <div className="hidden md:block w-px h-32 bg-white/10 mx-auto" />
+
             <div className="text-center">
-              <div className="text-4xl font-bold text-[var(--blue-primary)] mb-1">100%</div>
-              <div className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Client Smile</div>
+              <div className="text-6xl md:text-8xl font-black text-[var(--blue-primary)] mb-4 tracking-tighter tabular-nums">{profileData.yearsExperience}</div>
+              <div className="text-sm font-black uppercase tracking-[0.4em] text-white/40">Career Maturity</div>
             </div>
-            <div className="hidden md:block w-px h-12 bg-[var(--border)]" />
-            <div className="text-center">
-              <div className="text-4xl font-bold text-[var(--blue-primary)] mb-1">{profileData.yearsExperience}</div>
-              <div className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Career Years</div>
-            </div>
+          </div>
+          
+          <div className="mt-20 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+              <p className="text-lg font-bold text-white/60">Ready to join the standard of excellence?</p>
+              <a 
+                href="#contact"
+                className="px-12 py-6 bg-white text-[var(--blue-dark)] rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] hover:text-white transition-all shadow-xl group/btn"
+              >
+                Inaugurate Project
+              </a>
           </div>
         </motion.div>
       </div>
