@@ -2,28 +2,10 @@ import { motion } from "motion/react";
 import { Plus, Edit, Trash2, Eye, Save, X, Image as ImageIcon, Play } from "lucide-react";
 import { useState } from "react";
 import { MediaUploader } from "./MediaUploader";
-import { useData } from "../../contexts/DataContext";
+import { useData, Project, MediaFile } from "../../contexts/DataContext";
 
-interface MediaFile {
-  id: string;
-  type: "image" | "video" | "logo";
-  url: string;
-  name: string;
-  size?: string;
-}
 
-interface Project {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  features: string[];
-  tech: string[];
-  liveUrl?: string;
-  caseStudyUrl?: string;
-  media?: MediaFile[];
-  logo?: string;
-}
+
 
 export function ProjectsManager() {
   const { projects, addProject, updateProject, deleteProject } = useData();

@@ -2,15 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
-interface MediaFile {
-  id?: string;
+export interface MediaFile {
+  id: string;
   type: "image" | "video" | "logo";
   url: string;
   name: string;
-  size?: string;
+  size: string;
 }
 
-interface Project {
+export interface Project {
   id: string;
   title: string;
   category: string;
@@ -19,7 +19,7 @@ interface Project {
   tech: string[];
   liveUrl?: string;
   caseStudyUrl?: string;
-  media?: MediaFile[];
+  media: MediaFile[];
   logo?: string;
   viewCount: number;
 }

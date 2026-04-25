@@ -2,14 +2,8 @@ import { motion } from "motion/react";
 import { Upload, X, Image, Film, FileImage, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "../../utils/supabase";
+import { MediaFile } from "../../contexts/DataContext";
 
-interface MediaFile {
-  id: string;
-  type: "image" | "video" | "logo";
-  url: string;
-  name: string;
-  size: string;
-}
 
 interface MediaUploaderProps {
   onFilesSelected: (files: MediaFile[]) => void;
