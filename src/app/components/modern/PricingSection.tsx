@@ -21,7 +21,7 @@ export function PricingSection() {
   ];
 
   return (
-    <section className="py-32 px-6 md:px-12 bg-[#fafafa]">
+    <section id="pricing" className="py-32 px-6 md:px-12 bg-[#fafafa]">
       <div className="max-w-7xl mx-auto">
         {/* Header Block */}
         <div className="flex flex-col md:flex-row items-end justify-between gap-12 mb-24">
@@ -32,11 +32,11 @@ export function PricingSection() {
                 className="max-w-2xl"
             >
                 <span className="px-4 py-2 rounded-full bg-[var(--blue-primary)]/5 text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-widest mb-6 inline-block border border-[var(--blue-primary)]/10">
-                    Transparent Pricing
+                    Service Pricing
                 </span>
                 <h2 className="text-5xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter leading-[0.9] mb-8">
-                    Investment <br />
-                    <span className="text-[var(--blue-primary)] uppercase italic">Framework</span>
+                    Choose Your <br />
+                    <span className="text-[var(--blue-primary)] uppercase italic">Plan</span>
                 </h2>
                 <p className="text-xl text-[var(--muted-foreground)] font-medium">
                     Scalable solutions tailored to your technical complexity. Select a starting point or request a bespoke architectural audit.
@@ -165,10 +165,10 @@ export function PricingSection() {
                             <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center">
                                 <Zap className="w-6 h-6 text-yellow-400" />
                             </div>
-                            <h3 className="text-3xl font-black uppercase italic tracking-tighter">Velocity Support</h3>
+                            <h3 className="text-3xl font-black uppercase italic tracking-tighter">Expert Support</h3>
                         </div>
                         <p className="text-xl text-white/70 font-medium max-w-2xl leading-relaxed">
-                            Focus on scaling your revenue while I manage the technical ecosystem. From server-side hardening to content updates, you get a dedicated expert on call.
+                            Focus on your business while I handle the tech. From security to updates, you get priority support.
                         </p>
                    </div>
                    <div className="flex flex-col items-center gap-4">

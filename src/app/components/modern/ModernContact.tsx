@@ -50,7 +50,7 @@ export function ModernContact() {
                 <div className="flex items-center gap-6 mb-8 text-[var(--blue-dark)]">
                     <span className="text-4xl md:text-7xl font-black opacity-10 select-none">&lt;</span>
                     <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic">
-                        Strategic <span className="text-[var(--blue-primary)] not-italic">Dialogue</span>
+                        Send <span className="text-[var(--blue-primary)] not-italic">a Message</span>
                     </h2>
                     <span className="text-4xl md:text-7xl font-black opacity-10 select-none">/&gt;</span>
                 </div>
@@ -188,7 +188,7 @@ export function ModernContact() {
                     <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                     <>
-                        <span>Inaugurate Protocol</span>
+                        <span>Send Message</span>
                         <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
                     </>
                 )}

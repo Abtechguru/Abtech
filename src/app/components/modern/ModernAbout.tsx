@@ -29,7 +29,7 @@ export function ModernAbout() {
                 <div className="flex items-center gap-6 mb-8">
                     <span className="text-4xl md:text-7xl font-black text-[var(--blue-dark)] opacity-10 select-none">&lt;</span>
                     <h2 className="text-4xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter uppercase italic leading-none">
-                        Self <span className="text-[var(--blue-primary)] not-italic">Identity</span>
+                        About <span className="text-[var(--blue-primary)] not-italic">Me</span>
                     </h2>
                     <span className="text-4xl md:text-7xl font-black text-[var(--blue-dark)] opacity-10 select-none">/&gt;</span>
                 </div>

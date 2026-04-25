@@ -44,7 +44,7 @@ export function ModernProjects() {
             </div>
           </div>
           <p className="text-xl text-[var(--muted-foreground)] md:ml-20">
-            Production-grade applications serving real users
+            Real-world solutions built with precision
           </p>
         </motion.div>
 
@@ -91,9 +91,19 @@ export function ModernProjects() {
                           src={project.media[0].url}
                           alt={project.title}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            // Fallback to logo if media image fails
+                            if (project.logo) (e.target as HTMLImageElement).src = project.logo;
+                          }}
                         />
                       )}
                     </>
+                  ) : project.logo ? (
+                    <img
+                      src={project.logo}
+                      alt={project.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
                   ) : (
                     <>
                       <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-20`} />

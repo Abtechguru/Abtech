@@ -23,11 +23,11 @@ export function TestimonialsSection() {
             >
                 <div className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--blue-primary)]/5 border border-[var(--blue-primary)]/10 rounded-full text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-[0.4em] mb-8">
                     <Star className="w-4 h-4 fill-[var(--blue-primary)]" />
-                    <span>User Sentiments</span>
+                    <span>User Testimonials</span>
                 </div>
                 <h2 className="text-5xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter leading-[0.9] mb-8 uppercase italic">
-                    Universal <br />
-                    <span className="text-[var(--blue-primary)] not-italic">Endorsements</span>
+                    Client <br />
+                    <span className="text-[var(--blue-primary)] not-italic">Reviews</span>
                 </h2>
                 <p className="text-xl text-[var(--muted-foreground)] font-medium">
                     Verified feedback from partners, founders, and students who have experienced the standard of excellence.

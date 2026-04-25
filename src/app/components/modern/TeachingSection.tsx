@@ -25,11 +25,11 @@ export function TeachingSection() {
               viewport={{ once: true }}
             >
               <span className="px-4 py-2 rounded-full bg-[var(--blue-primary)]/5 text-[var(--blue-primary)] text-xs font-black uppercase tracking-widest mb-6 inline-block">
-                Professional Educator
+                Expert Teacher
               </span>
               <h2 className="text-5xl md:text-6xl font-black text-[var(--blue-dark)] tracking-tighter mb-8 italic">
-                Empowering <br />
-                <span className="text-[var(--blue-primary)] not-italic">Future Engineers</span>
+                Teaching <br />
+                <span className="text-[var(--blue-primary)] not-italic">Students</span>
               </h2>
               <p className="text-xl text-[var(--muted-foreground)] leading-relaxed font-medium">
                 Distinguished Mathematics & Physics specialist with a proven track record of student excellence at all levels.

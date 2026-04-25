@@ -21,23 +21,23 @@ export function ProcessSection() {
     {
       id: "01",
       icon: Lightbulb,
-      title: "Discovery & Blueprinting",
-      tags: ["System Architecture", "Market Analysis"],
-      description: "We deep-dive into your business logic and technical constraints to build a foolproof development roadmap."
+      title: "Planning & Strategy",
+      tags: ["Structure", "Analysis"],
+      description: "We look into your business needs and technical goals to build a clear roadmap."
     },
     {
       id: "02",
       icon: Code,
-      title: "Development & AI Sync",
-      tags: ["Fullstack", "LLM Integration"],
-      description: "Crafting the engine with clean code and integrating intelligent layers to automate complex business workflows."
+      title: "Design & Build",
+      tags: ["Development", "AI Features"],
+      description: "Building the engine with clean code and adding smart features to help your business."
     },
     {
       id: "03",
       icon: Rocket,
-      title: "Launch & Optimization",
-      tags: ["Vercel/AWS", "Monitoring"],
-      description: "Going live with robust CI/CD pipelines and continuous performance monitoring to ensure zero-downtime growth."
+      title: "Launch & Support",
+      tags: ["Deployment", "Maintenance"],
+      description: "Going live with high speed and continuous updates to ensure your business grows."
     }
   ];
 
@@ -57,11 +57,11 @@ export function ProcessSection() {
                     viewport={{ once: true }}
                 >
                     <span className="px-5 py-2 rounded-full bg-[var(--blue-primary)]/5 text-[var(--blue-primary)] text-[10px] font-black uppercase tracking-[0.3em] mb-8 inline-block border border-[var(--blue-primary)]/10">
-                        Methodology
+                        My Process
                     </span>
                     <h2 className="text-5xl md:text-7xl font-black text-[var(--blue-dark)] tracking-tighter mb-8 leading-[0.9]">
-                        How I Build <br />
-                        <span className="text-[var(--blue-primary)] uppercase italic">Excellence</span>
+                        How I <br />
+                        <span className="text-[var(--blue-primary)] uppercase italic">Work</span>
                     </h2>
                     <p className="text-xl text-[var(--muted-foreground)] font-medium max-w-md">
                         Transforming complex requirements into streamlined digital products through a rigorous three-phase audit and build process.

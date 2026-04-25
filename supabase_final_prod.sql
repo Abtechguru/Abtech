@@ -1,0 +1,53 @@
+-- STEP 1: Enable Storage Extension (if not already)
+-- CREATE EXTENSION IF NOT EXISTS "storage";
+
+-- STEP 2: Create the 'media' bucket for project assets
+-- You can also do this in the Supabase Dashboard: Storage -> New Bucket -> 'media' (Public)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('media', 'media', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- STEP 3: Set up Storage Policies for the 'media' bucket
+-- Allow public read access to media
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'media' );
+
+-- Allow authenticated users to upload to the media bucket
+CREATE POLICY "Authenticated Upload" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' AND auth.role() = 'authenticated' );
+
+-- Allow owners to delete their own media
+CREATE POLICY "Owner Delete" ON storage.objects FOR DELETE USING ( bucket_id = 'media' AND auth.uid() = owner );
+
+
+-- STEP 4: Database Schema Verification & Cleanup
+-- Ensure the 'media' table exists and is linked correctly
+CREATE TABLE IF NOT EXISTS public.media (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+  type TEXT CHECK (type IN ('image', 'video', 'logo')),
+  url TEXT NOT NULL,
+  name TEXT,
+  size TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS on media table
+ALTER TABLE public.media ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to media records
+DROP POLICY IF EXISTS "Media is viewable by everyone" ON public.media;
+CREATE POLICY "Media is viewable by everyone" ON public.media
+  FOR SELECT USING (true);
+
+-- Allow authenticated users to manage media records
+DROP POLICY IF EXISTS "Users can manage their own project media" ON public.media;
+CREATE POLICY "Users can manage their own project media" ON public.media
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE projects.id = media.project_id
+      AND projects.user_id = auth.uid()
+    )
+  );
+
+-- OPTIONAL: Add an index for faster joins
+CREATE INDEX IF NOT EXISTS idx_media_project_id ON public.media(project_id);

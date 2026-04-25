@@ -11,7 +11,9 @@ export function Sidebar() {
   const navItems = [
     { id: "home", label: "Home", icon: Home, href: "#" },
     { id: "projects", label: "Projects", icon: FolderKanban, href: "#projects" },
-    { id: "about", label: "About Me", icon: User, href: "#about" }
+    { id: "services", label: "Services", icon: User, href: "#services" },
+    { id: "about", label: "About", icon: User, href: "#about" },
+    { id: "contact", label: "Contact", icon: Mail, href: "#contact" }
   ];
 
   const socialLinks = [

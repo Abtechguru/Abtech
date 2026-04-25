@@ -42,7 +42,7 @@ export function ServicesSection() {
   ];
 
   return (
-    <section className="py-32 px-6 md:px-12 bg-white relative overflow-hidden">
+    <section id="services" className="py-32 px-6 md:px-12 bg-white relative overflow-hidden">
       {/* Background Accents */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_10%_20%,var(--blue-primary)/0.02_0%,transparent_20%)] pointer-events-none" />
 
