@@ -121,24 +121,25 @@ export function TeachingSection() {
                         </p>
                     </div>
                     
-                    <button 
-                        onClick={handleGoToTeaching}
-                        className="px-10 py-5 bg-[var(--blue-dark)] text-white rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] transition-all flex items-center gap-3 shadow-xl shadow-blue-900/10 group"
-                    >
-                        Learn More
-                        <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    </button>
-                    
-                    {profileData.tutorLink && (
+                    <div className="flex flex-col md:flex-row items-center gap-4">
+                        <button 
+                            onClick={handleGoToTeaching}
+                            className="w-full md:w-auto px-8 py-4 bg-[var(--secondary)] text-[var(--blue-dark)] rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] hover:text-white transition-all flex items-center justify-center gap-3 shadow-sm group"
+                        >
+                            Access Curriculum
+                            <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        </button>
+                        
                         <a 
-                            href={profileData.tutorLink}
+                            href={profileData.calendlyLink || profileData.tutorLink || "#contact"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-black uppercase tracking-[0.2em] text-[var(--blue-primary)] hover:underline"
+                            className="w-full md:w-auto px-8 py-4 bg-[var(--blue-dark)] text-white rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-900/10"
                         >
-                            Hire on Tuteria
+                            <BookOpen className="w-5 h-5" />
+                            Book Now
                         </a>
-                    )}
+                    </div>
                 </div>
               </div>
             </motion.div>
