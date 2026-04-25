@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Home, FolderKanban, User, Github, Linkedin, Mail, Instagram, Music, Menu, X } from "lucide-react";
+import { Home, FolderKanban, User, Github, Linkedin, Mail, Instagram, Music, Menu, X, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { useData } from "../../contexts/DataContext";
 
@@ -12,6 +12,7 @@ export function Sidebar() {
     { id: "home", label: "Home", icon: Home, href: "#" },
     { id: "projects", label: "Projects", icon: FolderKanban, href: "#projects" },
     { id: "services", label: "Services", icon: User, href: "#services" },
+    { id: "teaching", label: "Teaching", icon: BookOpen, href: "/teaching", internal: true },
     { id: "about", label: "About", icon: User, href: "#about" },
     { id: "contact", label: "Contact", icon: Mail, href: "#contact" }
   ];
@@ -23,9 +24,13 @@ export function Sidebar() {
     { icon: Github, href: profileData.github, label: "GitHub" }
   ];
 
-  const handleNavClick = (id: string) => {
+  const handleNavClick = (id: string, href: string, internal?: boolean) => {
     setActiveSection(id);
     setIsOpen(false);
+    if (internal) {
+        window.history.pushState({}, "", href);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+    }
   };
 
   return (
@@ -51,7 +56,7 @@ export function Sidebar() {
         )}
       </AnimatePresence>
 
-      <aside className={`fixed top-0 bottom-0 w-64 bg-white border-r border-[var(--border)] flex flex-col z-50 transition-all duration-700 lg:left-0 ${isOpen ? 'left-0' : '-left-64'}`}>
+      <aside className={`fixed top-0 bottom-0 w-64 bg-white border-r border-[var(--border)] flex flex-col z-50 transition-all duration-700 lg:left-0 overflow-y-auto ${isOpen ? 'left-0' : '-left-64'}`}>
         {/* Profile Section */}
         <div className="p-8 pt-12 flex flex-col items-center">
           <motion.div
@@ -84,10 +89,13 @@ export function Sidebar() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => handleNavClick(item.id)}
-                className={`relative flex items-center gap-6 px-8 py-5 rounded-2xl group transition-all ${
+                onClick={(e) => {
+                    if (item.internal) e.preventDefault();
+                    handleNavClick(item.id, item.href, item.internal);
+                }}
+                className={`relative flex items-center gap-6 px-8 py-4 rounded-2xl group transition-all ${
                   activeSection === item.id
-                    ? "text-[var(--blue-dark)] bg-[var(--secondary)]/30"
+                    ? "text-[var(--blue-dark)] bg-[var(--blue-primary)]/5"
                     : "text-[var(--muted-foreground)] hover:text-[var(--blue-dark)]"
                 }`}
               >
@@ -95,12 +103,12 @@ export function Sidebar() {
                 {activeSection === item.id && (
                     <motion.div
                         layoutId="active-bar"
-                        className="absolute left-0 top-1/4 bottom-1/4 w-[4px] bg-[var(--blue-dark)] rounded-r-full"
+                        className="absolute left-0 top-1/4 bottom-1/4 w-[4px] bg-[var(--blue-primary)] rounded-r-full"
                     />
                 )}
                 
-                <item.icon className={`w-8 h-8 transition-transform group-hover:scale-105 ${activeSection === item.id ? 'stroke-[3px]' : 'stroke-[2px]'}`} />
-                <span className="text-xl font-bold">{item.label}</span>
+                <item.icon className={`w-7 h-7 transition-transform group-hover:scale-105 ${activeSection === item.id ? 'stroke-[3px] text-[var(--blue-primary)]' : 'stroke-[2px]'}`} />
+                <span className="text-lg font-bold">{item.label}</span>
               </motion.a>
             ))}
         </nav>
@@ -113,19 +121,19 @@ export function Sidebar() {
                 <span className="hover:text-[var(--blue-dark)] cursor-pointer transition-colors">FR</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex gap-3 justify-center">
                 {socialLinks.map((social, index) => (
                 <motion.a
                     key={index}
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.1, y: -4 }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-14 h-14 rounded-2xl bg-white border border-[var(--border)] flex items-center justify-center text-[var(--blue-dark)] hover:bg-[var(--blue-dark)] hover:text-white transition-all shadow-sm"
+                    className="w-12 h-12 rounded-xl bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center text-[var(--blue-dark)] hover:bg-[var(--blue-primary)] hover:text-white transition-all shadow-sm"
                     title={social.label}
                 >
-                    <social.icon className="w-7 h-7" />
+                    <social.icon className="w-5 h-5" />
                 </motion.a>
                 ))}
             </div>

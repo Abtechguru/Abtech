@@ -96,6 +96,7 @@ interface DataContextType {
   testimonials: Testimonial[];
   experience: Experience[];
   profileData: ProfileData;
+  teachingMedia: MediaFile[];
   messages: Message[];
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -108,6 +109,7 @@ interface DataContextType {
   markMessageRead: (id: string) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
   setProfileData: (data: ProfileData) => Promise<{ error: any }>;
+  setTeachingMedia: (media: MediaFile[]) => Promise<{ error: any }>;
   sendMessage: (msg: { name: string; email: string; subject: string; message: string }) => Promise<{ error: any }>;
   login: (email: string, password: string) => Promise<{ error: any }>;
   logout: () => Promise<void>;
@@ -144,6 +146,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [testimonials, setTestimonialsState] = useState<Testimonial[]>([]);
   const [experience, setExperienceState] = useState<Experience[]>([]);
   const [messages, setMessagesState] = useState<Message[]>([]);
+  const [teachingMedia, setTeachingMediaState] = useState<MediaFile[]>([]);
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -179,14 +182,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         { data: servicesData },
         { data: skillsData },
         { data: testData },
-        { data: expData }
+        { data: expData },
+        { data: teachingMediaData }
       ] = await Promise.all([
         supabase.from('profiles').select('*').limit(1).single(),
         supabase.from('projects').select('*, media (*)').order('created_at', { ascending: false }),
         supabase.from('services').select('*').order('display_order', { ascending: true }),
         supabase.from('skills').select('*').order('display_order', { ascending: true }),
         supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-        supabase.from('experience').select('*').order('display_order', { ascending: true })
+        supabase.from('experience').select('*').order('display_order', { ascending: true }),
+        supabase.from('teaching_media').select('*').order('created_at', { ascending: false })
       ]);
 
       if (profile) {
@@ -255,6 +260,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
         })));
       }
+
+      if (teachingMediaData) {
+        setTeachingMediaState(teachingMediaData.map((m: any) => ({
+          id: m.id, type: m.type, url: m.url, name: m.name, size: m.size
+        })));
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -272,7 +283,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           { data: skillsData },
           { data: testData },
           { data: expData },
-          { data: messagesData }
+          { data: messagesData },
+          { data: teachingMediaData }
         ] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).single(),
           supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false }),
@@ -280,7 +292,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           supabase.from('skills').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
           supabase.from('testimonials').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
           supabase.from('experience').select('*').eq('user_id', userId).order('display_order', { ascending: true }),
-          supabase.from('messages').select('*').eq('to_user_id', userId).order('created_at', { ascending: false })
+          supabase.from('messages').select('*').eq('to_user_id', userId).order('created_at', { ascending: false }),
+          supabase.from('teaching_media').select('*').eq('profile_id', userId).order('created_at', { ascending: false })
         ]);
 
         if (messagesData) {
@@ -545,6 +558,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const setTeachingMedia = async (media: MediaFile[]) => {
+    if (!session) return { error: "Not authenticated" };
+    await supabase.from('teaching_media').delete().eq('profile_id', session.user.id);
+    const mediaToInsert = media.map(m => ({
+      profile_id: session.user.id,
+      type: m.type,
+      url: m.url,
+      name: m.name,
+      size: m.size
+    }));
+    const { error } = await supabase.from('teaching_media').insert(mediaToInsert);
+    if (!error) setTeachingMediaState(media);
+    return { error };
+  };
+
   const sendMessage = async (msg: { name: string; email: string; subject: string; message: string }) => {
     const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
     if (!profile) return { error: "Recipient not found" };
@@ -572,7 +600,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: !!session, isLoading, user: session?.user ?? null,
       addProject, updateProject, deleteProject, incrementProjectView, incrementProfileView,
       markMessageRead, deleteMessage,
-      setProfileData: updateProfileData, sendMessage, login, logout
+      setProfileData: updateProfileData, setTeachingMedia, sendMessage, login, logout
     }}>
       {children}
     </DataContext.Provider>

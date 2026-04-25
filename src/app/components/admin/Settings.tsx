@@ -2,19 +2,22 @@ import { motion } from "motion/react";
 import { Save, User, Mail, Phone, MapPin, Github, Linkedin, Globe, Lock, Bell, Upload, X, Dribbble } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useData } from "../../contexts/DataContext";
+import { MediaUploader } from "./MediaUploader";
 
 export function Settings() {
-  const { profileData, setProfileData, isLoading } = useData();
+  const { profileData, setProfileData, teachingMedia, setTeachingMedia, isLoading } = useData();
   const [profile, setProfile] = useState(profileData);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(profileData.profilePhoto || "");
+  const [currentTeachingMedia, setCurrentTeachingMedia] = useState(teachingMedia);
 
   // Sync local state when profileData finishes loading from Supabase
   useEffect(() => {
     if (!isLoading && profileData) {
       setProfile(profileData);
       setProfilePhotoPreview(profileData.profilePhoto || "");
+      setCurrentTeachingMedia(teachingMedia);
     }
-  }, [profileData, isLoading]);
+  }, [profileData, teachingMedia, isLoading]);
 
   const [notifications, setNotifications] = useState({
     emailMessages: true,
@@ -311,21 +314,46 @@ export function Settings() {
                     />
                 </div>
               </div>
+              
+              <div className="pt-6 border-t border-[var(--blue-primary)]/10">
+                <label className="block text-sm font-bold mb-4 uppercase tracking-widest text-[var(--blue-dark)]">Teaching Session Media (Photos/Videos)</label>
+                <MediaUploader 
+                  onFilesSelected={(files) => setCurrentTeachingMedia(files)}
+                  existingFiles={currentTeachingMedia}
+                  maxFiles={12}
+                />
+              </div>
             </div>
           </div>
 
-          <button
-            onClick={handleSaveProfile}
-            disabled={isSaving}
-            className="px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Save className="w-5 h-5" />
-            )}
-            <span>{isSaving ? "Saving..." : "Save Profile"}</span>
-          </button>
+          <div className="flex gap-4">
+            <button
+                onClick={handleSaveProfile}
+                disabled={isSaving}
+                className="px-6 py-3 bg-[var(--blue-dark)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-blue-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {isSaving ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                <Save className="w-5 h-5" />
+                )}
+                <span>{isSaving ? "Saving Profile..." : "Save Teaching & Profile Info"}</span>
+            </button>
+            
+            <button
+                onClick={async () => {
+                    setIsSaving(true);
+                    await setTeachingMedia(currentTeachingMedia);
+                    setIsSaving(false);
+                    alert("Teaching media synchronized!");
+                }}
+                disabled={isSaving}
+                className="px-6 py-3 bg-white border border-[var(--blue-dark)] text-[var(--blue-dark)] rounded-xl flex items-center gap-2 hover:bg-[var(--secondary)] transition-all disabled:opacity-50"
+            >
+                <Upload className="w-5 h-5" />
+                <span>Sync Session Media</span>
+            </button>
+          </div>
         </motion.div>
 
         {/* Notification Settings */}

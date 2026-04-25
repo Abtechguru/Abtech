@@ -5,9 +5,12 @@ import { useData } from "../../contexts/DataContext";
 export function TeachingSection() {
   const { profileData } = useData();
 
-  if (!profileData.tutorDescription) return null;
+  const handleGoToTeaching = () => {
+    window.history.pushState({}, "", "/teaching");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
-  const expertTags = profileData.examExpert?.split(",") || [];
+  const expertTags = profileData.examExpert?.split(",") || ["WAEC", "JAMB", "Further Maths", "Physics Specialist"];
 
   return (
     <section id="teaching" className="py-24 px-6 md:px-12 bg-white relative overflow-hidden">
@@ -88,7 +91,7 @@ export function TeachingSection() {
               <div className="prose prose-blue max-w-none mb-12">
                 <h3 className="text-2xl font-black text-[var(--blue-dark)] mb-6">Teaching Philosophy</h3>
                 <p className="text-[var(--muted-foreground)] leading-relaxed whitespace-pre-wrap font-medium">
-                  {profileData.tutorDescription}
+                  {profileData.tutorDescription || "I am an accomplished mathematics, physics, and further mathematics teacher, eager to contribute my expertise to your child and institution. With a rich background in education, I have cultivated a dynamic teaching approach that not only imparts knowledge but also sparks curiosity and critical thinking."}
                 </p>
               </div>
 
@@ -118,15 +121,22 @@ export function TeachingSection() {
                         </p>
                     </div>
                     
+                    <button 
+                        onClick={handleGoToTeaching}
+                        className="px-10 py-5 bg-[var(--blue-dark)] text-white rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] transition-all flex items-center gap-3 shadow-xl shadow-blue-900/10 group"
+                    >
+                        Learn More
+                        <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </button>
+                    
                     {profileData.tutorLink && (
                         <a 
                             href={profileData.tutorLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-10 py-5 bg-[var(--blue-dark)] text-white rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] transition-all flex items-center gap-3 shadow-xl shadow-blue-900/10 group"
+                            className="text-xs font-black uppercase tracking-[0.2em] text-[var(--blue-primary)] hover:underline"
                         >
                             Hire on Tuteria
-                            <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </a>
                     )}
                 </div>

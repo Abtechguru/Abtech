@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ModernPortfolio } from "./components/modern/ModernPortfolio";
+import { ModernTeaching } from "./components/modern/ModernTeaching";
 import { AdminPage } from "./components/admin/AdminPage";
 import { AdminLogin } from "./components/admin/AdminLogin";
 import { DataProvider, useData } from "./contexts/DataContext";
@@ -11,7 +12,7 @@ if (typeof window !== 'undefined') {
 }
 
 function AppContent() {
-  const [currentPath, setCurrentPath] = useState<"portfolio" | "admin">("portfolio");
+  const [currentPath, setCurrentPath] = useState<"portfolio" | "admin" | "teaching">("portfolio");
   const { isAuthenticated, logout } = useData();
 
   useEffect(() => {
@@ -22,6 +23,8 @@ function AppContent() {
       const path = window.location.pathname;
       if (path === "/admin" || path.startsWith("/admin")) {
         setCurrentPath("admin");
+      } else if (path === "/teaching") {
+        setCurrentPath("teaching");
       } else {
         setCurrentPath("portfolio");
       }
@@ -49,6 +52,10 @@ function AppContent() {
       return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
     }
     return <AdminPage onLogout={handleLogout} />;
+  }
+
+  if (currentPath === "teaching") {
+    return <ModernTeaching />;
   }
 
   return <ModernPortfolio />;

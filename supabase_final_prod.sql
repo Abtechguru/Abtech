@@ -51,3 +51,22 @@ CREATE POLICY "Users can manage their own project media" ON public.media
 
 -- OPTIONAL: Add an index for faster joins
 CREATE INDEX IF NOT EXISTS idx_media_project_id ON public.media(project_id);
+
+-- STEP 5: Teaching Media Table
+CREATE TABLE IF NOT EXISTS public.teaching_media (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type TEXT CHECK (type IN ('image', 'video')),
+  url TEXT NOT NULL,
+  name TEXT,
+  size TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.teaching_media ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Teaching media is viewable by everyone" ON public.teaching_media
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can manage their own teaching media" ON public.teaching_media
+  FOR ALL USING (profile_id = auth.uid());
