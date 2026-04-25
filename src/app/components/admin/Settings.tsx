@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Save, User, Mail, Phone, MapPin, Github, Linkedin, Globe, Lock, Bell, Upload, X, Dribbble } from "lucide-react";
+import { Save, User, Mail, Phone, MapPin, Github, Linkedin, Globe, Lock, Bell, Upload, X, Dribbble, MessageCircle, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useData } from "../../contexts/DataContext";
 import { MediaUploader } from "./MediaUploader";
@@ -187,6 +187,32 @@ export function Settings() {
                   type="tel"
                   value={profile.phone}
                   onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm mb-2">WhatsApp Number (Direct)</label>
+              <div className="relative">
+                <MessageCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+                <input
+                  type="text"
+                  value={profile.whatsapp}
+                  onChange={(e) => setProfile({ ...profile, whatsapp: e.target.value })}
+                  placeholder="e.g. +2348105230379"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm mb-2">Calendly Booking Link</label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+                <input
+                  type="url"
+                  value={profile.calendlyLink}
+                  onChange={(e) => setProfile({ ...profile, calendlyLink: e.target.value })}
+                  placeholder="https://calendly.com/your-profile"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
                 />
               </div>

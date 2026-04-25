@@ -75,3 +75,15 @@ CREATE POLICY "Teaching media is viewable by everyone" ON public.teaching_media
 DROP POLICY IF EXISTS "Users can manage their own teaching media" ON public.teaching_media;
 CREATE POLICY "Users can manage their own teaching media" ON public.teaching_media
   FOR ALL USING (profile_id = auth.uid());
+
+-- ADD WHATSAPP TO PROFILES
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='profiles' AND column_name='whatsapp') THEN
+    ALTER TABLE public.profiles ADD COLUMN whatsapp TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='profiles' AND column_name='calendly_link') THEN
+    ALTER TABLE public.profiles ADD COLUMN calendly_link TEXT;
+  END IF;
+END $$;

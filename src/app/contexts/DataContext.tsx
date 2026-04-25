@@ -62,6 +62,7 @@ interface ProfileData {
   location: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   bio: string;
   profilePhoto?: string;
   github: string;
@@ -77,6 +78,7 @@ interface ProfileData {
   examExpert?: string;
   teachingModality?: string;
   curriculum?: string;
+  calendlyLink?: string;
 }
 
 interface Message {
@@ -125,7 +127,8 @@ const DEFAULT_PROFILE: ProfileData = {
   title: "AI-Powered Fullstack Developer & Expert Educator",
   location: "Lagos, Nigeria",
   email: "careernig24@gmail.com",
-  phone: "+234 XXX XXX XXXX",
+  phone: "+234 810 523 0379",
+  whatsapp: "+2348105230379",
   bio: "Fullstack Engineer & Math Specialist crafting production-grade AI systems and empowering the next generation of engineers.",
   github: "https://github.com/lateefabiodun",
   linkedin: "https://linkedin.com/in/lateefabiodun",
@@ -139,7 +142,8 @@ const DEFAULT_PROFILE: ProfileData = {
   tutorLink: "https://tutors.tuteria.com/profile/lateefafeez28",
   examExpert: "WAEC, JAMB, NECO, JUPEB, BECE, Cambridge Checkpoint",
   teachingModality: "Physical lessons only",
-  curriculum: "Nigerian & British Curriculum"
+  curriculum: "Nigerian & British Curriculum",
+  calendlyLink: "https://calendly.com/lateefabiodun"
 };
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
@@ -204,6 +208,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           location: profile.location || "",
           email: profile.email || "",
           phone: profile.phone || "",
+          whatsapp: profile.whatsapp || "",
           bio: profile.bio || "",
           profilePhoto: profile.profile_photo || "",
           github: profile.github || "",
@@ -218,7 +223,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           tutorLink: profile.tutor_link || "",
           examExpert: profile.exam_expert || "",
           teachingModality: profile.teaching_modality || "",
-          curriculum: profile.curriculum || ""
+          curriculum: profile.curriculum || "",
+          calendlyLink: profile.calendly_link || ""
         });
       }
 
@@ -312,6 +318,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             location: profile.location || "",
             email: profile.email || "",
             phone: profile.phone || "",
+            whatsapp: profile.whatsapp || "",
             bio: profile.bio || "",
             profilePhoto: profile.profile_photo || "",
             github: profile.github || "",
@@ -326,7 +333,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             tutorLink: profile.tutor_link || "",
             examExpert: profile.exam_expert || "",
             teachingModality: profile.teaching_modality || "",
-            curriculum: profile.curriculum || ""
+            curriculum: profile.curriculum || "",
+            calendlyLink: profile.calendly_link || ""
           });
         }
   
@@ -575,6 +583,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         location: data.location,
         email: data.email,
         phone: data.phone,
+        whatsapp: data.whatsapp,
         bio: data.bio,
         profile_photo: data.profilePhoto,
         github: data.github,
@@ -589,6 +598,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         exam_expert: data.examExpert,
         teaching_modality: data.teachingModality,
         curriculum: data.curriculum,
+        calendly_link: data.calendlyLink,
         updated_at: new Date().toISOString()
       })
       .eq('id', session.user.id);

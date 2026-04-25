@@ -68,7 +68,7 @@ export function ModernTeaching() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <a 
-                  href={profileData.tutorLink || "#"} 
+                  href={profileData.calendlyLink || profileData.tutorLink || "#"} 
                   target="_blank"
                   className="px-8 py-5 bg-[var(--blue-dark)] text-white rounded-2xl font-black uppercase tracking-widest hover:bg-[var(--blue-primary)] transition-all shadow-xl shadow-blue-900/20"
                 >
@@ -247,7 +247,7 @@ export function ModernTeaching() {
                         <h3 className="text-4xl font-black mb-4 uppercase italic tracking-tighter">Ready to Start?</h3>
                         <p className="text-lg font-bold text-white/80 mb-10 max-w-sm mx-auto">Book a free consultation to discuss your child's academic goals and current challenges.</p>
                         <a 
-                            href={profileData.tutorLink || "#"} 
+                            href={profileData.calendlyLink || profileData.tutorLink || "#"} 
                             target="_blank"
                             className="inline-block px-12 py-6 bg-white text-[var(--blue-dark)] rounded-3xl font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-transform"
                         >

@@ -3,6 +3,7 @@ import { ModernPortfolio } from "./components/modern/ModernPortfolio";
 import { ModernTeaching } from "./components/modern/ModernTeaching";
 import { AdminPage } from "./components/admin/AdminPage";
 import { AdminLogin } from "./components/admin/AdminLogin";
+import { WhatsAppFloat } from "./components/modern/WhatsAppFloat";
 import { DataProvider, useData } from "./contexts/DataContext";
 import { initErrorHandler } from "./utils/errorHandler";
 
@@ -55,10 +56,20 @@ function AppContent() {
   }
 
   if (currentPath === "teaching") {
-    return <ModernTeaching />;
+    return (
+      <>
+        <ModernTeaching />
+        <WhatsAppFloat />
+      </>
+    );
   }
 
-  return <ModernPortfolio />;
+  return (
+    <>
+      <ModernPortfolio />
+      <WhatsAppFloat />
+    </>
+  );
 }
 
 export default function App() {

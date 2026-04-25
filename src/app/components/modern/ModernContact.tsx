@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Mail, Phone, MapPin, Send, MessageSquare, ArrowRight, Zap, Globe, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Send, MessageSquare, ArrowRight, Zap, Globe, Clock, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useData } from "../../contexts/DataContext";
 
@@ -16,6 +16,7 @@ export function ModernContact() {
   const contactInfo = [
     { icon: Mail, label: "Official Email", value: profileData.email, href: `mailto:${profileData.email}` },
     { icon: Phone, label: "Direct Line", value: profileData.phone, href: `tel:${profileData.phone}` },
+    { icon: MessageCircle, label: "WhatsApp Direct", value: "Message Now", href: `https://wa.me/${profileData.whatsapp?.replace(/\D/g, '')}` },
     { icon: MapPin, label: "HQ Location", value: profileData.location, href: "#" }
   ];
 
@@ -75,7 +76,7 @@ export function ModernContact() {
                     <Globe className="w-6 h-6 text-[var(--blue-primary)]" />
                     Global Reach
                 </h3>
-                <div className="space-y-8">
+                <div className="space-y-6">
                     {contactInfo.map((item, index) => (
                         <a
                             key={index}
@@ -179,20 +180,32 @@ export function ModernContact() {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-20 bg-[var(--blue-primary)] text-white rounded-[32px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-[var(--blue-dark)] hover:-translate-y-1 transition-all shadow-2xl shadow-blue-900/20 active:scale-95 disabled:opacity-70 group"
-              >
-                {isSubmitting ? (
-                    <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                ) : (
-                    <>
-                        <span>Send Message</span>
-                        <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
-                    </>
-                )}
-              </button>
+              <div className="flex flex-col md:flex-row gap-4">
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 h-20 bg-[var(--blue-primary)] text-white rounded-[32px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-[var(--blue-dark)] hover:-translate-y-1 transition-all shadow-2xl shadow-blue-900/20 active:scale-95 disabled:opacity-70 group"
+                >
+                    {isSubmitting ? (
+                        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        <>
+                            <span>Send Message</span>
+                            <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                        </>
+                    )}
+                </button>
+
+                <a
+                    href={`https://wa.me/${profileData.whatsapp?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Lateef, my name is ${formData.name}. Regarding ${formData.subject}: ${formData.message}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 h-20 bg-green-500 text-white rounded-[32px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-green-600 hover:-translate-y-1 transition-all shadow-2xl shadow-green-900/20 active:scale-95 group"
+                >
+                    <MessageCircle className="w-6 h-6" />
+                    <span>WhatsApp Me</span>
+                </a>
+              </div>
             </form>
           </motion.div>
         </div>
