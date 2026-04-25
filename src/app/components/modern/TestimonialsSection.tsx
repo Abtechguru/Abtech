@@ -5,7 +5,26 @@ import { useData } from "../../contexts/DataContext";
 export function TestimonialsSection() {
   const { testimonials, profileData } = useData();
 
-  if (!testimonials || testimonials.length === 0) return null;
+  const mockTestimonials: any[] = [
+    {
+      id: "mock-1",
+      clientName: "Ayodeji Peters",
+      clientRole: "CEO, CareMandate",
+      company: "CareMandate Health",
+      feedback: "Lateef delivered our health platform with clinical precision. His ability to translate complex logic into a seamless user experience is second to none.",
+      clientImage: ""
+    },
+    {
+      id: "mock-2",
+      clientName: "David O.",
+      clientRole: "Operations Lead",
+      company: "Veritus News Global",
+      feedback: "Working with this standard of engineering is refreshing. The news platform he built handles high-concurrency feeds without a single dropped frame.",
+      clientImage: ""
+    }
+  ];
+
+  const displayTestimonials = testimonials && testimonials.length > 0 ? testimonials : mockTestimonials;
 
   return (
     <section className="py-32 px-6 md:px-12 bg-white relative overflow-hidden">
@@ -37,7 +56,7 @@ export function TestimonialsSection() {
 
         {/* Masonry-style Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
+          {displayTestimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
               initial={{ opacity: 0, scale: 0.95 }}

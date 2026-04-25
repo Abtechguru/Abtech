@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Home, FolderKanban, User, Github, Linkedin, Mail, Instagram, Music, Menu, X, BookOpen } from "lucide-react";
+import { Home, FolderKanban, User, Github, Linkedin, Mail, Instagram, Music, Menu, X, BookOpen, ArrowRight, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { useData } from "../../contexts/DataContext";
 
@@ -11,6 +11,8 @@ export function Sidebar() {
   const navItems = [
     { id: "home", label: "Home", icon: Home, href: "#" },
     { id: "projects", label: "Projects", icon: FolderKanban, href: "#projects" },
+    { id: "process", label: "Process", icon: ArrowRight, href: "#process" },
+    { id: "pricing", label: "Pricing", icon: Briefcase, href: "#pricing" },
     { id: "services", label: "Services", icon: User, href: "#services" },
     { id: "teaching", label: "Teaching", icon: BookOpen, href: "/teaching", internal: true },
     { id: "about", label: "About", icon: User, href: "#about" },
