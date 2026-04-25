@@ -104,6 +104,9 @@ interface DataContextType {
   addProject: (project: Omit<Project, 'id' | 'viewCount'>) => Promise<{ error: any }>;
   updateProject: (id: string, project: Partial<Project>) => Promise<{ error: any }>;
   deleteProject: (id: string) => Promise<{ error: any }>;
+  addService: (service: Omit<Service, 'id'>) => Promise<{ error: any }>;
+  updateService: (id: string, service: Partial<Service>) => Promise<{ error: any }>;
+  deleteService: (id: string) => Promise<{ error: any }>;
   incrementProjectView: (id: string) => Promise<void>;
   incrementProfileView: () => Promise<void>;
   markMessageRead: (id: string) => Promise<void>;
@@ -500,6 +503,42 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!error) setProjectsState(projects.filter(p => p.id !== id));
     return { error };
   };
+  const addService = async (service: Omit<Service, 'id'>) => {
+    if (!session?.user) return { error: "Not authenticated" };
+    const { error } = await supabase.from('services').insert({
+      user_id: session.user.id,
+      title: service.title,
+      description: service.description,
+      price: service.price,
+      features: service.features || []
+    });
+    if (!error) {
+        const { data } = await supabase.from('services').select('*').eq('user_id', session.user.id).order('display_order', { ascending: true });
+        if (data) setServicesState(data.map((s: any) => ({
+            id: s.id, title: s.title, description: s.description, price: s.price, features: s.features || []
+        })));
+    }
+    return { error };
+  };
+
+  const updateService = async (id: string, service: Partial<Service>) => {
+    const { error } = await supabase.from('services').update({
+      title: service.title,
+      description: service.description,
+      price: service.price,
+      features: service.features
+    }).eq('id', id);
+    if (!error) {
+        setServicesState(services.map(s => s.id === id ? { ...s, ...service } : s));
+    }
+    return { error };
+  };
+
+  const deleteService = async (id: string) => {
+    const { error } = await supabase.from('services').delete().eq('id', id);
+    if (!error) setServicesState(services.filter(s => s.id !== id));
+    return { error };
+  };
 
   const incrementProjectView = async (id: string) => {
     await supabase.rpc('increment_project_view', { project_id: id });
@@ -598,7 +637,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     <DataContext.Provider value={{
       projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
       isAuthenticated: !!session, isLoading, user: session?.user ?? null,
-      addProject, updateProject, deleteProject, incrementProjectView, incrementProfileView,
+      addProject, updateProject, deleteProject,
+      addService, updateService, deleteService,
+      incrementProjectView, incrementProfileView,
       markMessageRead, deleteMessage,
       setProfileData: updateProfileData, setTeachingMedia, sendMessage, login, logout
     }}>
