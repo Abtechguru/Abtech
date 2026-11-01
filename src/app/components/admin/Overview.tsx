@@ -8,7 +8,7 @@ interface OverviewProps {
 }
 
 export function Overview({ onNavigate }: OverviewProps) {
-  const { projects, messages, profileData, skills, experience, isLoading } = useData();
+  const { projects, messages, profileData, skills, experience, isLoading, dataError } = useData();
   const unread = messages.filter(message => !message.isRead).length;
   const projectViews = projects.reduce((total, project) => total + (Number(project.viewCount) || 0), 0);
   const stats = [
@@ -32,6 +32,7 @@ export function Overview({ onNavigate }: OverviewProps) {
         <p className="text-[var(--muted-foreground)]">Welcome back{profileData.fullName ? ", " + profileData.fullName.split(" ")[0] : ""}. A focused view of your actual portfolio records.</p>
       </div>
 
+      {dataError && <p role="alert" className="mb-5 rounded-lg bg-amber-50 border border-amber-300 p-4 text-sm text-amber-900">{dataError} Some displayed counts may be incomplete.</p>}
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-7">
         {stats.map((item, index) => <motion.div key={item.label} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .05 }} className="p-6 rounded-xl bg-white border border-[var(--border)]">
           <div className="flex items-center justify-between mb-8"><span className="uppercase text-[10px] tracking-[.11em] font-black text-[var(--muted-foreground)]">{item.label}</span><item.icon size={20} className="text-[var(--orange)]" /></div>
