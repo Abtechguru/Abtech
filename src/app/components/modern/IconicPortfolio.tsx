@@ -140,7 +140,7 @@ function DatabaseProject({ project, onView }: { project: Project; onView: (id: s
 }
 
 function WorkSection() {
-  const { projects, isLoading, incrementProjectView } = useData();
+  const { projects, isLoading, dataError, incrementProjectView } = useData();
   const [category, setCategory] = useState<WorkCategory>("All");
   const filtered = useMemo(() => category === "All" ? CASE_STUDIES : CASE_STUDIES.filter(item => item.type === category), [category]);
   const archived = projects.filter(project => !CASE_STUDIES.some(study => study.title.toLowerCase() === project.title.trim().toLowerCase()));
@@ -156,6 +156,7 @@ function WorkSection() {
           {FILTERS.map(value => <button type="button" key={value} className={category === value ? "ip-filter ip-filter-active" : "ip-filter"} onClick={() => setCategory(value)} aria-pressed={category === value}>{value}</button>)}
         </div>
         <div className="ip-work-grid">{filtered.map(project => <WorkCard key={project.title} project={project} />)}</div>
+        {dataError && <p className="ip-db-state" role="status">{dataError} The featured case studies above remain available.</p>}
         {isLoading ? <p className="ip-db-state" role="status">Loading additional portfolio projects…</p> : archived.length > 0 && (
           <div className="ip-archive">
             <div className="ip-archive-heading"><h3>More from the archive</h3><span>MANAGED THROUGH THE PORTFOLIO STUDIO</span></div>
