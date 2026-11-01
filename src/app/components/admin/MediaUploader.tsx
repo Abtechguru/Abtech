@@ -15,6 +15,7 @@ const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 const IMAGE_LIMIT_BYTES = 8 * 1024 * 1024;
 const VIDEO_LIMIT_BYTES = 40 * 1024 * 1024;
+const EMPTY_FILES: MediaFile[] = [];
 
 function fileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " B";
@@ -31,7 +32,7 @@ function validFile(file: File): string | null {
   return null;
 }
 
-export function MediaUploader({ onFilesSelected, acceptedTypes = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm", maxFiles = 10, existingFiles = [] }: MediaUploaderProps) {
+export function MediaUploader({ onFilesSelected, acceptedTypes = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm", maxFiles = 10, existingFiles = EMPTY_FILES }: MediaUploaderProps) {
   const [files, setFiles] = useState<MediaFile[]>(existingFiles);
   const filesRef = useRef(files);
   const [dragging, setDragging] = useState(false);
