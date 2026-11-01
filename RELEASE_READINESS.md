@@ -8,9 +8,14 @@ Last reviewed: 2026-11-01
 - Featured project summaries lead to dedicated routes under /work/:slug.
 - Editorial case studies avoid invented metrics, testimonials, and deployment claims.
 - Admin content studio redesigned and connected to actual sign-out actions.
-- Overview uses real database counters and real messages; nonfunctional quick actions were connected.
+- Admin/teaching/case-study routes are lazy-loaded instead of shipped with the homepage bundle.
+- Overview and Analytics use real database counters and real messages; unsupported retention, growth and reach figures were removed.
+- Inbox now supports searching, unread filtering, refresh, real error handling and optional Supabase Realtime events.
 - Settings now calls Supabase Auth for password updates and does not promise delivery of unconfigured notifications.
-- Public portfolio data is filtered to one configured owner UUID; admin UI only accepts that owner's Supabase session.
+- Profile photos and project media upload to Storage with type/size checks; no base64 fallback is presented as a saved upload.
+- Media registry updates insert new records before removing old ones, with errors surfaced to the editor.
+- Public portfolio data is filtered to one configured owner UUID; admin UI only accepts that owner's Supabase session, verified with the Auth service.
+- Failing dynamic database reads present a warning instead of silently pretending to be an empty portfolio.
 
 ## Required deployment configuration
 
@@ -38,8 +43,9 @@ If the owner ID is absent or malformed, the app intentionally refuses admin acce
 
 | Check | Status |
 | --- | --- |
-| GitHub Actions: TypeScript | Pass (check latest PR run) |
-| GitHub Actions: Vite production build | Pass (check latest PR run) |
+| GitHub Actions: TypeScript | Pass on latest verified run; check current PR head |
+| GitHub Actions: Vite production build | Pass on latest verified run; check current PR head |
+| GitHub Actions: static integrity regression checks | Added; not a substitute for browser tests or live Supabase testing |
 | New /work/:slug routes integrated in SPA router | Implemented |
 | Responsive CSS for 360px–desktop | Implemented; needs screenshot QA |
 | Real Supabase owner login and dashboard edits | Blocked on portfolio project access and owner UUID |
@@ -57,7 +63,10 @@ If the owner ID is absent or malformed, the app intentionally refuses admin acce
 - Verify contact message submission arrives in owner inbox and failures show correct error feedback.
 - Verify password change with current Supabase Auth settings (reauthentication may be required).
 - Confirm no sensitive key appears in built assets or published source.
-- Run browser accessibility checks and mobile performance testing.
+- Run browser accessibility checks and mobile performance testing. Run Lighthouse/axe, verify portrait media, and inspect dynamic load errors.
+- Confirm no base64 media placeholders appear after failed storage uploads; upload success should persist after refresh.
+- Verify Realtime message changes where enabled, and that manual inbox refresh works otherwise.
+- Confirm the verified Supabase owner can edit projects, teaching media and profile photos under the actual Storage RLS policies.
 - Revisit SEO/social previews after deployment.
 
 ## Deployment rule
