@@ -1,9 +1,8 @@
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { motion } from "motion/react";
-import { Upload, X, Image, Film, FileImage, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, FileImage, Film, Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
 import { supabase } from "../../utils/supabase";
-import { MediaFile } from "../../contexts/DataContext";
-
+import type { MediaFile } from "../../contexts/DataContext";
 
 interface MediaUploaderProps {
   onFilesSelected: (files: MediaFile[]) => void;
@@ -12,207 +11,146 @@ interface MediaUploaderProps {
   existingFiles?: MediaFile[];
 }
 
-export function MediaUploader({
-  onFilesSelected,
-  acceptedTypes = "image/*,video/*",
-  maxFiles = 10,
-  existingFiles = []
-}: MediaUploaderProps) {
+const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
+const IMAGE_LIMIT_BYTES = 8 * 1024 * 1024;
+const VIDEO_LIMIT_BYTES = 40 * 1024 * 1024;
+
+function fileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+function validFile(file: File): string | null {
+  if (!IMAGE_TYPES.has(file.type) && !VIDEO_TYPES.has(file.type)) {
+    return "Unsupported file: " + file.name + ". Use JPEG, PNG, WebP, GIF, MP4 or WebM.";
+  }
+  const maxSize = IMAGE_TYPES.has(file.type) ? IMAGE_LIMIT_BYTES : VIDEO_LIMIT_BYTES;
+  if (file.size > maxSize) return file.name + " exceeds the " + fileSize(maxSize) + " limit.";
+  return null;
+}
+
+export function MediaUploader({ onFilesSelected, acceptedTypes = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm", maxFiles = 10, existingFiles = [] }: MediaUploaderProps) {
   const [files, setFiles] = useState<MediaFile[]>(existingFiles);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const filesRef = useRef(files);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { filesRef.current = files; }, [files]);
+  useEffect(() => {
+    filesRef.current = existingFiles;
+    setFiles(existingFiles);
+  }, [existingFiles]);
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      processFiles(Array.from(e.target.files));
+  function updateFiles(next: MediaFile[]) {
+    filesRef.current = next;
+    setFiles(next);
+    onFilesSelected(next);
+  }
+
+  async function processFiles(fileList: File[]) {
+    if (uploading || fileList.length === 0) return;
+    setError(null);
+    const available = Math.max(0, maxFiles - filesRef.current.length);
+    if (available === 0) {
+      setError("You have reached the " + maxFiles + "-file limit. Remove an item before uploading more.");
+      return;
     }
-  };
-
-  const processFiles = async (fileList: File[]) => {
-    setIsUploading(true);
+    const batch = fileList.slice(0, available);
+    const failures = batch.map(validFile).filter((message): message is string => Boolean(message));
+    if (failures.length || fileList.length > available) {
+      setError([...failures, ...(fileList.length > available ? ["Only " + available + " more file(s) can be added."] : [])].join(" "));
+    }
+    const accepted = batch.filter(file => validFile(file) === null);
+    if (accepted.length === 0) return;
+    setUploading(true);
     try {
-      const processedFiles: MediaFile[] = await Promise.all(
-        fileList.map(async (file) => {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-          const filePath = `project-media/${fileName}`;
-
-          // Upload to Supabase Storage
-          // Note: We use a try-catch for each upload to handle bucket existence
-          const { error: uploadError } = await supabase.storage
-            .from('media') // Assuming a bucket named 'media' exists
-            .upload(filePath, file);
-
-          if (uploadError) {
-             console.error("Upload error:", uploadError);
-             // Fallback to Base64 if storage fails (for dev/local without bucket set up)
-             return new Promise<MediaFile>((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                  resolve({
-                    id: Date.now().toString() + Math.random(),
-                    type: file.type.startsWith("image/") ? (file.name.toLowerCase().includes("logo") ? "logo" : "image") : "video",
-                    url: reader.result as string,
-                    name: file.name,
-                    size: formatFileSize(file.size)
-                  });
-                };
-                reader.readAsDataURL(file);
-             });
-          }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('media')
-            .getPublicUrl(filePath);
-
-          return {
-            id: Date.now().toString() + Math.random(),
-            type: file.type.startsWith("image/") ? (file.name.toLowerCase().includes("logo") ? "logo" : "image") : "video",
-            url: publicUrl,
-            name: file.name,
-            size: formatFileSize(file.size)
-          };
-        })
+      const uploaded = await Promise.allSettled(accepted.map(async (file): Promise<MediaFile> => {
+        const ext = file.name.split(".").at(-1)?.toLowerCase() || "bin";
+        const path = "project-media/" + crypto.randomUUID() + "." + ext;
+        const result = await supabase.storage.from("media").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        });
+        if (result.error) throw new Error(file.name + ": " + result.error.message);
+        const { data } = supabase.storage.from("media").getPublicUrl(path);
+        if (!data.publicUrl) throw new Error(file.name + ": no public media URL was returned.");
+        return {
+          id: crypto.randomUUID(),
+          type: file.type.startsWith("video/") ? "video" : file.name.toLowerCase().includes("logo") ? "logo" : "image",
+          url: data.publicUrl,
+          name: file.name,
+          size: fileSize(file.size)
+        };
+      }));
+      const successful = uploaded.flatMap(result => result.status === "fulfilled" ? [result.value] : []);
+      const failuresFromUpload = uploaded.flatMap(result =>
+        result.status === "rejected" ? [result.reason instanceof Error ? result.reason.message : "Media upload failed."] : []
       );
-
-      const updatedFiles = [...files, ...processedFiles].slice(0, maxFiles);
-      setFiles(updatedFiles);
-      onFilesSelected(updatedFiles);
+      if (successful.length) updateFiles([...filesRef.current, ...successful].slice(0, maxFiles));
+      if (failuresFromUpload.length) setError(previous => [previous, ...failuresFromUpload].filter(Boolean).join(" "));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Upload failed. Please try again.");
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
-  };
+  }
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
+  function handleInput(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    void processFiles(Array.from(input.files || []));
+    input.value = "";
+  }
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    void processFiles(Array.from(event.dataTransfer.files));
+  }
+  function removeFile(id: string) {
+    updateFiles(filesRef.current.filter(file => file.id !== id));
+  }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files) {
-      processFiles(Array.from(e.dataTransfer.files));
-    }
-  };
-
-  const removeFile = (id: string) => {
-    const updatedFiles = files.filter(f => f.id !== id);
-    setFiles(updatedFiles);
-    onFilesSelected(updatedFiles);
-  };
-
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case "logo":
-        return <FileImage className="w-5 h-5 text-[var(--orange)]" />;
-      case "image":
-        return <Image className="w-5 h-5 text-blue-500" />;
-      case "video":
-        return <Film className="w-5 h-5 text-purple-500" />;
-      default:
-        return <Image className="w-5 h-5 text-[var(--muted-foreground)]" />;
-    }
-  };
-
-  return (
-    <div>
-      {/* Upload Area */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`relative border-2 border-dashed rounded-2xl p-8 transition-all ${
-          isDragging
-            ? "border-[var(--blue-primary)] bg-[var(--blue-primary)]/5"
-            : "border-[var(--border)] hover:border-[var(--blue-primary)]"
-        } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-      >
-        <input
-          type="file"
-          accept={acceptedTypes}
-          multiple
-          onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          id="file-upload"
-          disabled={isUploading}
-        />
-        <div className="text-center">
-          {isUploading ? (
-            <Loader2 className="w-12 h-12 mx-auto mb-4 text-[var(--blue-primary)] animate-spin" />
-          ) : (
-            <Upload className="w-12 h-12 mx-auto mb-4 text-[var(--muted-foreground)]" />
-          )}
-          <h4 className="mb-2">{isUploading ? "Uploading to Cloud..." : "Upload Media Files"}</h4>
-          <p className="text-sm text-[var(--muted-foreground)] mb-2">
-            Drag and drop files here, or click to browse
-          </p>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            Supported: Images and Videos. Max {maxFiles} files.
-          </p>
-        </div>
-      </div>
-
-      {/* File Preview Grid */}
-      {files.length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-sm mb-3 font-bold text-[var(--blue-dark)]">Project Media Asset Registry ({files.length})</h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {files.map((file) => (
-              <motion.div
-                key={file.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative group rounded-xl overflow-hidden bg-white border border-[var(--border)] hover:border-[var(--blue-primary)] transition-all shadow-sm"
-              >
-                {/* Preview */}
-                <div className="aspect-square bg-[var(--secondary)]/30 flex items-center justify-center">
-                  {file.type === "video" ? (
-                    <video src={file.url} className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="p-3 bg-white">
-                  <div className="flex items-start gap-2">
-                    {getFileIcon(file.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold truncate uppercase tracking-wider">{file.name}</p>
-                      <p className="text-[10px] text-[var(--muted-foreground)] uppercase tracking-tighter">{file.size}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Remove Button */}
-                <button
-                  onClick={() => removeFile(file.id)}
-                  className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-
-                {/* Type Badge */}
-                <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/90 backdrop-blur-sm text-[8px] font-black uppercase tracking-widest text-[var(--blue-dark)] border border-[var(--border)]">
-                  {file.type}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
+  return <div className="space-y-4">
+    <div className={"relative border-2 border-dashed rounded-xl p-7 text-center transition-colors " +
+      (dragging ? "border-[var(--orange)] bg-orange-50" : "border-[var(--border)] hover:border-[var(--orange)]") +
+      (uploading ? " opacity-70" : "")}
+      onDragOver={event => { event.preventDefault(); setDragging(true); }}
+      onDragLeave={event => { event.preventDefault(); setDragging(false); }}
+      onDrop={handleDrop}>
+      <input aria-label="Select portfolio media files" type="file" accept={acceptedTypes} multiple
+        disabled={uploading} onChange={handleInput}
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer disabled:cursor-not-allowed" />
+      {uploading ? <Loader2 size={34} className="mx-auto text-[var(--orange)] animate-spin mb-3" /> :
+        <Upload size={34} className="mx-auto text-[var(--orange)] mb-3" />}
+      <p className="font-bold text-[var(--blue-dark)]">{uploading ? "Uploading to storage…" : "Upload image or video"}</p>
+      <p className="text-xs text-[var(--muted-foreground)] mt-2">Drag and drop or browse · {files.length}/{maxFiles} files</p>
+      <p className="text-xs text-[var(--muted-foreground)] mt-1">Images up to 8 MB; MP4/WebM video up to 40 MB</p>
     </div>
-  );
+    {error && <p role="alert" className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"><AlertCircle size={18} className="shrink-0" />{error}</p>}
+    {files.length > 0 && <div>
+      <h4 className="text-xs uppercase tracking-wide font-black text-[var(--muted-foreground)] mb-3">Uploaded assets ({files.length})</h4>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+        {files.map(file => <motion.div key={file.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="relative bg-white border border-[var(--border)] rounded-lg overflow-hidden">
+          <div className="aspect-square bg-[var(--secondary)] flex items-center justify-center overflow-hidden">
+            {file.type === "video" ? <video src={file.url} className="w-full h-full object-cover" preload="metadata" /> :
+              <img src={file.url} alt={file.name} loading="lazy" className="w-full h-full object-cover" />}
+          </div>
+          <div className="p-3 flex items-start gap-2">
+            {file.type === "video" ? <Film size={16} className="text-[var(--orange)] shrink-0" /> :
+              file.type === "logo" ? <FileImage size={16} className="text-[var(--orange)] shrink-0" /> : <ImageIcon size={16} className="text-[var(--orange)] shrink-0" />}
+            <div className="min-w-0">
+              <p className="text-xs text-[var(--blue-dark)] truncate font-bold">{file.name}</p>
+              <p className="text-[11px] text-[var(--muted-foreground)]">{file.size}</p>
+            </div>
+          </div>
+          <button type="button" onClick={() => removeFile(file.id)}
+            className="absolute top-2 right-2 grid place-items-center w-9 h-9 bg-red-700 text-white rounded-lg hover:bg-red-800"
+            aria-label={"Remove " + file.name}><X size={17} /></button>
+        </motion.div>)}
+      </div>
+    </div>}
+  </div>;
 }
