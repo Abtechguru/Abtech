@@ -12,24 +12,25 @@ if (typeof window !== 'undefined') {
   initErrorHandler();
 }
 
+type AppRoute = "portfolio" | "admin" | "teaching";
+
+function resolveRoute(): AppRoute {
+  if (typeof window === "undefined") return "portfolio";
+  const pathname = window.location.pathname;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "admin";
+  if (pathname === "/teaching" || pathname.startsWith("/teaching/")) return "teaching";
+  return "portfolio";
+}
+
 function AppContent() {
-  const [currentPath, setCurrentPath] = useState<"portfolio" | "admin" | "teaching">("portfolio");
+  const [currentPath, setCurrentPath] = useState<AppRoute>(resolveRoute);
   const { isAuthenticated, logout } = useData();
 
   useEffect(() => {
     // Initialize error handler early
     initErrorHandler();
 
-    const checkPath = () => {
-      const path = window.location.pathname;
-      if (path === "/admin" || path.startsWith("/admin")) {
-        setCurrentPath("admin");
-      } else if (path === "/teaching") {
-        setCurrentPath("teaching");
-      } else {
-        setCurrentPath("portfolio");
-      }
-    };
+    const checkPath = () => setCurrentPath(resolveRoute());
 
     checkPath();
 
