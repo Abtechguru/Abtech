@@ -27,5 +27,7 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Static TypeScript check
+        run: npm exec --yes --package typescript@5.9.3 -- tsc --noEmit
       - name: Build production bundle
         run: npm run build
