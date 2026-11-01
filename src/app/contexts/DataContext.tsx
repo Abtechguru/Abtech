@@ -128,7 +128,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const configuredOwnerId = (import.meta.env.VITE_PORTFOLIO_OWNER_ID || "").trim().toLowerCase();
 const PORTFOLIO_OWNER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(configuredOwnerId)
   ? configuredOwnerId : "";
-const isOwnerSession = (value: Session | null): boolean =>
+const isOwnerSession = (value: Session | null): value is Session =>
   Boolean(PORTFOLIO_OWNER_ID && value?.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID);
 
 
