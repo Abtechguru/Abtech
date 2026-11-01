@@ -242,6 +242,7 @@ function ContactSection() {
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const contactEmail = profileData.email?.trim();
   const whatsapp = profileData.whatsapp?.replace(/\D/g, "");
+  const inboxConfigured = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(import.meta.env.VITE_PORTFOLIO_OWNER_ID || "");
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
@@ -274,7 +275,7 @@ function ContactSection() {
               {safeUrl(profileData.linkedin) && <a href={safeUrl(profileData.linkedin)} target="_blank" rel="noopener noreferrer"><Linkedin size={20} /><span>Connect on LinkedIn</span><ArrowUpRight size={18} /></a>}
             </div>
           </div>
-          <form className="ip-contact-form" onSubmit={handleSubmit}>
+          {inboxConfigured ? <form className="ip-contact-form" onSubmit={handleSubmit}>
             <div className="ip-form-top"><Terminal size={22} /><span>NEW INQUIRY</span><span>CONTACT / 001</span></div>
             <div className="ip-form-row">
               <label>YOUR NAME <input autoComplete="name" type="text" maxLength={120} required placeholder="How should I call you?" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
@@ -285,7 +286,13 @@ function ContactSection() {
             <button type="submit" disabled={pending}>{pending ? "Sending…" : "Send your message"} <Send size={17} /></button>
             <p className="ip-form-notice" aria-live="polite" role="status">{notice && <span className={notice.type === "error" ? "ip-notice-error" : "ip-notice-success"}>{notice.type === "success" && <CheckCircle2 size={17} />}{notice.text}</span>}</p>
             <p className="ip-form-privacy"><ShieldCheck size={15} /> Your message is sent directly to my portfolio inbox.</p>
-          </form>
+          </form> : <div className="ip-contact-form ip-contact-unavailable">
+            <Mail size={34} aria-hidden="true" />
+            <span className="ip-eyebrow">DIRECT CONTACT</span>
+            <h3>Let's start a conversation.</h3>
+            <p>The direct inbox is not connected in this deployment yet. You can still reach me securely by email or WhatsApp.</p>
+            {contactEmail && <a className="ip-button-primary" href={"mailto:" + contactEmail}>Send an email <ArrowUpRight size={19} /></a>}
+          </div>}
         </div>
       </div>
     </section>
