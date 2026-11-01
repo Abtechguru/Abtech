@@ -491,3 +491,9 @@
   .ip-study-next { padding: 70px 0; }
   .ip-study-next > .ip-container > a strong { font-size: clamp(45px,10vw,72px); }
 }
+
+/* Honest fallback when inbox configuration is unavailable. */
+.ip-contact-unavailable { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 430px; gap: 18px; }
+.ip-contact-unavailable > svg { color: var(--ip-orange); }
+.ip-contact-unavailable h3 { font-family: Outfit,Inter,sans-serif; font-size: clamp(35px,4vw,55px); font-weight: 620; letter-spacing: -.06em; line-height: 1.1; margin: 3px 0; }
+.ip-contact-unavailable p { color: #b8bac0; max-width: 440px; font-size: 15px; line-height: 1.8; margin: 0 0 8px; }
