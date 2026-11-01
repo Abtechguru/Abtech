@@ -56,3 +56,51 @@ test("dashboard avoids unverifiable growth percentages", () => {
   assert.doesNotMatch(overview, /Real-time sync/);
   assert.match(overview, /projects\.reduce/);
 });
+
+
+test("analytics reports only stored counters, never fabricated retention or reach", () => {
+  const analytics = source("src/app/components/admin/Analytics.tsx");
+  assert.match(analytics, /projects\.reduce/);
+  assert.match(analytics, /messages\.length/);
+  assert.doesNotMatch(analytics, /Retention Rate|Top Referral|Peak Activity|2\.4K|68%|\+12%|\+24%/);
+});
+
+test("private routes are split from the initial public homepage bundle", () => {
+  const app = source("src/app/App.tsx");
+  assert.match(app, /lazy\(\(\) => import\("\.\/components\/admin\/AdminPage"\)/);
+  assert.match(app, /lazy\(\(\) => import\("\.\/components\/modern\/ModernTeaching"\)/);
+  assert.match(app, /Suspense fallback=/);
+});
+
+test("editor media uploads never fabricate base64-backed storage records", () => {
+  const uploader = source("src/app/components/admin/MediaUploader.tsx");
+  const settings = source("src/app/components/admin/Settings.tsx");
+  assert.match(uploader, /supabase\.storage\.from\("media"\)\.upload/);
+  assert.match(settings, /supabase\.storage\.from\("media"\)\.upload/);
+  assert.doesNotMatch(uploader, /readAsDataURL|reader\.result/);
+  assert.doesNotMatch(settings, /readAsDataURL|reader\.result/);
+});
+
+test("owner sessions are validated through Supabase Auth service", () => {
+  const context = source("src/app/contexts/DataContext.tsx");
+  assert.match(context, /supabase\.auth\.getUser\(\)/);
+  assert.match(context, /data\.user\?\.id\?\.toLowerCase\(\) === PORTFOLIO_OWNER_ID/);
+  assert.match(context, /isOwnerSession\(session\)/);
+});
+
+test("inbox offers real search, refresh and scoped mutations", () => {
+  const viewer = source("src/app/components/admin/MessagesViewer.tsx");
+  const context = source("src/app/contexts/DataContext.tsx");
+  assert.match(viewer, /type="search"/);
+  assert.match(viewer, /Refresh inbox/);
+  assert.match(viewer, /postgres_changes/);
+  assert.match(context, /refreshMessages: \(\) => Promise/);
+  assert.match(context, /\.eq\("to_user_id", PORTFOLIO_OWNER_ID\)/);
+});
+
+test("media replacement never deletes the previous gallery before insertion", () => {
+  const context = source("src/app/contexts/DataContext.tsx");
+  assert.match(context, /Insert replacements before deleting existing attachments/);
+  assert.doesNotMatch(context, /await supabase\.from\('teaching_media'\)\.delete\(\)\.eq\('profile_id'/);
+  assert.match(context, /const removedIds = existing\.filter/);
+});
