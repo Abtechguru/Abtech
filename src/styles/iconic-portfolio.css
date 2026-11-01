@@ -400,3 +400,94 @@
 @media (prefers-reduced-motion: reduce) {
   .ip-root *, .ip-root *::before, .ip-root *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Individual engineering case studies */
+.ip-case-primary-link { display: inline-flex; gap: 11px; align-items: center; margin-top: 18px; color: #16171a !important; background: var(--ip-orange); padding: 12px 15px; border-radius: 3px; font-size: 12px; font-weight: 800; transition: transform .2s, background .2s; }
+.ip-case-primary-link:hover { transform: translateX(3px); background: #ffa07b; }
+.ip-study-header { position: sticky; top: 0; z-index: 40; background: rgba(16,17,21,.94); backdrop-filter: blur(18px); border-bottom: 1px solid var(--ip-line); }
+.ip-study-header-inner { min-height: 84px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.ip-study-back { display: inline-flex; align-items: center; gap: 11px; padding: 13px 0; color: #e2e0dc !important; font-size: 13px; font-weight: 800; transition: color .2s; }
+.ip-study-back:hover { color: var(--ip-orange) !important; }
+.ip-study-hero { padding: 50px 0 0; background: #14161a; }
+.ip-study-breadcrumb { display: flex; align-items: center; gap: 14px; font-family: "Courier New", monospace; font-size: 10px; font-weight: 750; letter-spacing: .12em; color: #8c9299; }
+.ip-study-breadcrumb strong { color: var(--ip-orange); }
+.ip-study-breadcrumb a:hover { color: var(--ip-orange); }
+.ip-study-title-grid { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 40px; align-items: end; padding-top: 80px; padding-bottom: 50px; }
+.ip-study-title-grid h1 { margin: 24px 0 20px; font-family: "Outfit", Inter, sans-serif; font-size: clamp(62px, 8.4vw, 148px); font-weight: 650; letter-spacing: -.075em; line-height: .97; }
+.ip-study-title-grid p { margin: 0; max-width: 730px; color: #c4c5c9; font-size: clamp(17px,1.7vw,25px); line-height: 1.45; }
+.ip-study-status { padding: 16px 0; width: max-content; max-width: 250px; display: grid; gap: 10px; }
+.ip-study-status > span { color: #8d9199; font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+.ip-study-status strong { display: inline-flex; align-items: center; gap: 11px; color: #e7e6e2; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.ip-study-visual { overflow: hidden; border: 1px solid #555157; }
+.ip-study-visual .ip-work-art { height: clamp(340px,40vw,560px); }
+.ip-study-visual .ip-work-art::before { width: 29%; box-shadow: 0 0 0 55px rgba(255,255,255,.025),0 0 0 140px rgba(255,255,255,.014); }
+.ip-study-visual .ip-art-symbol { font-size: clamp(170px, 28vw, 400px); }
+.ip-study-techrow { display: grid; grid-template-columns: .7fr 1fr 1.7fr; gap: 30px; padding: 28px 0 34px; }
+.ip-study-techrow > div { display: grid; gap: 10px; }
+.ip-study-techrow span { color: #858990; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.ip-study-techrow strong { font-size: 13px; font-weight: 700; line-height: 1.6; }
+.ip-study-section { padding: 125px 0; background: #17191e; }
+.ip-study-section.ip-study-dark { background: #25272d; }
+.ip-study-section.ip-study-outro { background: #121318; }
+.ip-study-two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: clamp(35px,8vw,140px); margin-top: 52px; }
+.ip-study-two-col h2, .ip-study-heading h2 { margin: 23px 0 24px; max-width: 650px; font-family: "Outfit",sans-serif; font-size: clamp(41px,4.2vw,72px); line-height: 1.09; font-weight: 630; letter-spacing: -.065em; }
+.ip-study-two-col p, .ip-study-heading p { margin: 0; color: #b4b5bb; font-size: clamp(16px,1.25vw,19px); line-height: 1.85; }
+.ip-study-heading { margin: 40px 0 48px; display: flex; justify-content: space-between; align-items: end; gap: 30px; }
+.ip-study-heading h2 { margin: 0; }
+.ip-study-heading p { max-width: 420px; font-size: 15px; }
+.ip-study-systemgrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; }
+.ip-study-systemgrid article { min-width: 0; min-height: 270px; display: flex; flex-direction: column; padding: 25px; border: 1px solid #494a51; background: #2f3138; }
+.ip-study-system-top { display: flex; justify-content: space-between; align-items: center; color: var(--ip-orange); font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.ip-study-systemgrid h3 { margin: 65px 0 12px; font-family: "Outfit", sans-serif; font-size: clamp(22px,2vw,30px); line-height: 1.14; letter-spacing: -.04em; }
+.ip-study-systemgrid p { color: #bcbcc0; font-size: 13px; line-height: 1.6; margin: 0; }
+.ip-study-principles { margin-top: 30px; padding: 38px; display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; background: #18191f; border: 1px solid #494c52; }
+.ip-study-principles h3 { font-family: "Outfit",sans-serif; font-size: clamp(33px,3.2vw,54px); line-height: 1.06; letter-spacing: -.055em; margin: 16px 0 0; }
+.ip-study-principles ul { list-style: none; padding: 0; margin: 0; align-self: center; display: grid; gap: 18px; }
+.ip-study-principles li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: #e8e5e2; }
+.ip-study-principles li svg { flex: none; color: var(--ip-orange); }
+.ip-study-highlights { margin-top: 33px; display: grid; gap: 14px; }
+.ip-study-highlights > div { display: flex; gap: 12px; align-items: center; color: #e6e0d9; font-size: 13px; }
+.ip-study-highlights svg { color: var(--ip-orange); }
+.ip-study-callout { align-self: start; background: #262831; border: 1px solid #4c4d54; padding: 38px; display: grid; justify-items: start; gap: 18px; }
+.ip-study-callout > svg { color: var(--ip-orange); }
+.ip-study-callout > span { color: var(--ip-orange); font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+.ip-study-callout p { font-size: 16px; line-height: 1.7; }
+.ip-study-callout a { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ip-orange); font-weight: 800; }
+.ip-study-next { padding: 88px 0 100px; background: var(--ip-orange); color: #161719; }
+.ip-study-next .ip-eyebrow { color: #242327; }
+.ip-study-next > .ip-container > a { display: grid; gap: 13px; margin-top: 21px; padding-bottom: 55px; border-bottom: 1px solid #17191c44; }
+.ip-study-next > .ip-container > a > span { font-size: 15px; font-weight: 750; }
+.ip-study-next > .ip-container > a strong { display: flex; gap: 28px; align-items: center; justify-content: space-between; font-family: "Outfit",sans-serif; font-size: clamp(49px,8vw,120px); line-height: 1; font-weight: 700; letter-spacing: -.07em; }
+.ip-study-footer-links { margin-top: 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+.ip-study-footer-links a { display: inline-flex; gap: 10px; align-items: center; font-size: 13px; font-weight: 800; }
+.ip-study-missing { padding-top: 18vh; padding-bottom: 20vh; }
+.ip-study-missing h1 { font-family: "Outfit",sans-serif; font-size: clamp(70px,11vw,140px); letter-spacing: -.07em; line-height: 1; margin: 20px 0; }
+.ip-study-missing p { max-width: 460px; color: var(--ip-muted); font-size: 18px; line-height: 1.6; margin-bottom: 35px; }
+@media (max-width: 1000px) {
+  .ip-study-title-grid { grid-template-columns: 1fr; gap: 20px; padding-top: 55px; }
+  .ip-study-status { border-top: 1px solid var(--ip-line); width: auto; }
+  .ip-study-systemgrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ip-study-heading { display: block; }
+  .ip-study-heading p { margin-top: 20px; }
+}
+@media (max-width: 680px) {
+  .ip-study-header-inner { min-height: 70px; }
+  .ip-study-hero { padding-top: 31px; }
+  .ip-study-title-grid { padding-top: 50px; padding-bottom: 30px; }
+  .ip-study-title-grid h1 { overflow-wrap: anywhere; font-size: clamp(50px, 12vw, 77px); }
+  .ip-study-title-grid p { font-size: 17px; }
+  .ip-study-visual .ip-work-art { height: 280px; }
+  .ip-study-techrow { grid-template-columns: 1fr; gap: 18px; }
+  .ip-study-techrow > div { gap: 4px; }
+  .ip-study-section { padding: 77px 0; }
+  .ip-study-two-col { grid-template-columns: 1fr; gap: 37px; }
+  .ip-study-two-col h2, .ip-study-heading h2 { font-size: clamp(41px, 10vw, 62px); }
+  .ip-study-systemgrid { grid-template-columns: 1fr; }
+  .ip-study-systemgrid article { min-height: 210px; }
+  .ip-study-systemgrid h3 { margin-top: 40px; }
+  .ip-study-principles { grid-template-columns: 1fr; padding: 25px; }
+  .ip-study-callout { padding: 25px; }
+  .ip-study-next { padding: 70px 0; }
+  .ip-study-next > .ip-container > a strong { font-size: clamp(45px,10vw,72px); }
+}
