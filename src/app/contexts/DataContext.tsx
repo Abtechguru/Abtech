@@ -743,6 +743,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       return { error: new Error("This account is not authorized to manage the portfolio.") };
     }
+    const { data: identity, error: identityError } = await supabase.auth.getUser();
+    if (identityError || identity.user?.id?.toLowerCase() !== PORTFOLIO_OWNER_ID) {
+      await supabase.auth.signOut();
+      return { error: identityError || new Error("The portfolio owner identity could not be verified.") };
+    }
+    setIsLoading(true);
+    setSession(data.session);
     return { error: null };
   };
 
