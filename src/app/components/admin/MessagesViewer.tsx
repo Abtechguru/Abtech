@@ -6,7 +6,7 @@ import { supabase } from "../../utils/supabase";
 type InboxFilter = "all" | "unread";
 
 export function MessagesViewer() {
-  const { user, messages, isLoading, refreshMessages, markMessageRead, deleteMessage } = useData();
+  const { user, messages, isLoading, dataError, refreshMessages, markMessageRead, deleteMessage } = useData();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<InboxFilter>("all");
@@ -88,6 +88,7 @@ export function MessagesViewer() {
           <RefreshCcw size={16} className={busy ? "animate-spin" : ""} /> Refresh inbox
         </button>
       </div>
+      {dataError && <p role="alert" className="rounded-lg bg-amber-50 text-amber-900 border border-amber-200 p-3 text-sm">{dataError}</p>}
       {notice && <p className="rounded-lg bg-red-50 text-red-800 border border-red-200 p-3 text-sm" role="alert">{notice}</p>}
       <div className="grid lg:grid-cols-[minmax(280px,.85fr)_minmax(0,1.15fr)] gap-5 items-start">
         <section className="bg-white border border-[var(--border)] rounded-xl overflow-hidden">
