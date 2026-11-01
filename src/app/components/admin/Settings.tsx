@@ -6,9 +6,11 @@ import { supabase } from "../../utils/supabase";
 import { MediaUploader } from "./MediaUploader";
 
 export function Settings() {
-  const { profileData, setProfileData, teachingMedia, setTeachingMedia, isLoading } = useData();
+  const { profileData, setProfileData, teachingMedia, setTeachingMedia, isLoading, user } = useData();
   const [profile, setProfile] = useState(profileData);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(profileData.profilePhoto || "");
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [currentTeachingMedia, setCurrentTeachingMedia] = useState(teachingMedia);
 
   // Sync local state when profileData finishes loading from Supabase
@@ -24,16 +26,39 @@ export function Settings() {
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordNotice, setPasswordNotice] = useState<{ ok: boolean; message: string } | null>(null);
 
-  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setProfilePhotoPreview(result);
-        setProfile({ ...profile, profilePhoto: result });
-      };
-      reader.readAsDataURL(file);
+  const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    setPhotoError(null);
+    if (!user) {
+      setPhotoError("Your editor session has expired. Please sign in again.");
+      return;
+    }
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setPhotoError("Select a JPEG, PNG, WebP or GIF under 5 MB.");
+      return;
+    }
+    setIsPhotoUploading(true);
+    try {
+      const ext = file.name.split(".").at(-1)?.toLowerCase() || "jpg";
+      const path = "profile-media/" + user.id + "/" + crypto.randomUUID() + "." + ext;
+      const { error: uploadError } = await supabase.storage.from("media").upload(path, file, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("media").getPublicUrl(path);
+      if (!data.publicUrl) throw new Error("Storage did not provide a usable photo URL.");
+      setProfilePhotoPreview(data.publicUrl);
+      setProfile(previous => ({ ...previous, profilePhoto: data.publicUrl }));
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : "Photo upload failed. Please try again.");
+    } finally {
+      setIsPhotoUploading(false);
     }
   };
 
@@ -133,6 +158,7 @@ export function Settings() {
                   type="file"
                   accept="image/*"
                   onChange={handleProfilePhotoUpload}
+                  disabled={isPhotoUploading}
                   className="hidden"
                   id="profile-photo-upload"
                 />
@@ -144,8 +170,10 @@ export function Settings() {
                   <span>Upload Photo</span>
                 </label>
                 <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                  JPG, PNG or GIF (Max 5MB)
+                  JPEG, PNG, WebP or GIF (Max 5 MB). Photos are uploaded to storage, not embedded in your profile.
                 </p>
+                {isPhotoUploading && <p role="status" className="text-sm mt-2 text-[var(--orange)]">Uploading photo…</p>}
+                {photoError && <p role="alert" className="text-sm mt-2 text-red-700">{photoError}</p>}
               </div>
             </div>
           </div>
@@ -357,7 +385,7 @@ export function Settings() {
           <div className="flex gap-4">
             <button
                 onClick={handleSaveProfile}
-                disabled={isSaving}
+                disabled={isSaving || isPhotoUploading}
                 className="px-6 py-3 bg-[var(--blue-dark)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-blue-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isSaving ? (
