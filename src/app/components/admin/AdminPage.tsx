@@ -32,7 +32,7 @@ export function AdminPage({ onLogout }: AdminPageProps) {
       case "messages":
         return <MessagesViewer />;
       case "analytics":
-        return <Analytics />;
+        return <Analytics onNavigate={setActiveTab} />;
       case "teaching":
         return <TeachingManager />;
       case "settings":
