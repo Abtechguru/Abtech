@@ -139,10 +139,10 @@ const DEFAULT_PROFILE: ProfileData = {
   phone: "07041514615",
   whatsapp: "2347041514615",
   bio: "Fullstack Engineer & Math Specialist crafting production-grade AI systems and empowering the next generation of engineers.",
-  github: "https://github.com/lateefabiodun",
-  linkedin: "https://linkedin.com/in/lateefabiodun",
-  behance: "https://behance.net/lateefabiodun",
-  website: "https://lateefabiodun.dev",
+  github: "https://github.com/Abtechguru",
+  linkedin: "",
+  behance: "",
+  website: "",
   viewCount: 0,
   yearsExperience: "",
   projectsDelivered: "",
@@ -168,25 +168,48 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (isOwnerSession(session)) {
-        fetchUserData(session!.user.id);
-      } else {
-        fetchAllData();
+    let active = true;
+    let requestVersion = 0;
+
+    const loadSession = async (candidate: Session | null) => {
+      const version = ++requestVersion;
+      let verified: Session | null = null;
+      if (isOwnerSession(candidate)) {
+        // getSession() may be backed by mutable local storage. Validate with the
+        // Supabase Auth service before granting access to the content studio.
+        try {
+          const { data, error } = await supabase.auth.getUser();
+          if (!error && data.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID) verified = candidate;
+        } catch (error) {
+          console.error("Unable to verify owner identity", error);
+        }
       }
+      if (!active || version !== requestVersion) return;
+      setSession(verified);
+      if (verified) await fetchUserData(verified.user.id);
+      else await fetchAllData();
+    };
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (error) console.error("Unable to restore portfolio session", error);
+      void loadSession(error ? null : data.session);
+    }).catch(error => {
+      console.error("Portfolio session recovery failed", error);
+      void loadSession(null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (isOwnerSession(session)) {
-        fetchUserData(session!.user.id);
-      } else {
-        fetchAllData();
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "INITIAL_SESSION") return; // already read above
+      // Avoid invoking another Supabase auth request while the auth callback
+      // is executing. The auth client may still be processing its internal lock.
+      window.setTimeout(() => { if (active) void loadSession(nextSession); }, 0);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      requestVersion++;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchAllData = async () => {
