@@ -402,7 +402,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'viewCount'>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { data: projectData, error: projectError } = await supabase
       .from('projects')
       .insert({
@@ -429,7 +429,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         name: m.name,
         size: m.size
       }));
-      await supabase.from('media').insert(mediaToInsert);
+      const { error: mediaError } = await supabase.from('media').insert(mediaToInsert);
+      if (mediaError) {
+        await supabase.from('projects').delete().eq('id', projectData.id).eq('user_id', PORTFOLIO_OWNER_ID);
+        return { error: mediaError };
+      }
     }
 
     // Faster partial refetch: only update projects list
@@ -461,7 +465,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProject = async (id: string, project: Partial<Project>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error: projectError } = await supabase
       .from('projects')
       .update({
@@ -475,21 +479,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         logo: project.logo,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id);
+      .eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
 
     if (projectError) return { error: projectError };
 
     if (project.media) {
-      await supabase.from('media').delete().eq('project_id', id);
-      if (project.media.length > 0) {
-        const mediaToInsert = project.media.map(m => ({
-          project_id: id,
-          type: m.type,
-          url: m.url,
-          name: m.name,
-          size: m.size
-        }));
-        await supabase.from('media').insert(mediaToInsert);
+      const { data: existingMedia, error: readError } = await supabase
+        .from("media").select("id,url").eq("project_id", id);
+      if (readError) return { error: readError };
+      const existing = existingMedia || [];
+      const wanted = new Set(project.media.map(file => file.url));
+      const oldUrls = new Set(existing.map(item => item.url));
+      const toAdd = project.media.filter(file => !oldUrls.has(file.url));
+      const toDelete = existing.filter(item => !wanted.has(item.url)).map(item => item.id);
+
+      // Insert replacements before deleting existing attachments. A failed insert
+      // never destroys an existing media gallery.
+      if (toAdd.length) {
+        const { error: insertError } = await supabase.from("media").insert(toAdd.map(file => ({
+          project_id: id, type: file.type, url: file.url, name: file.name, size: file.size
+        })));
+        if (insertError) return { error: insertError };
+      }
+      if (toDelete.length) {
+        const { error: deleteError } = await supabase.from("media").delete().in("id", toDelete).eq("project_id", id);
+        if (deleteError) return { error: deleteError };
       }
     }
 
@@ -522,12 +536,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteProject = async (id: string) => {
-    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from('projects').delete().eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) setProjectsState(projects.filter(p => p.id !== id));
     return { error };
   };
   const addService = async (service: Omit<Service, 'id'>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error } = await supabase.from('services').insert({
       user_id: session.user.id,
       title: service.title,
@@ -545,12 +560,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateService = async (id: string, service: Partial<Service>) => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
     const { error } = await supabase.from('services').update({
       title: service.title,
       description: service.description,
       price: service.price,
       features: service.features
-    }).eq('id', id);
+    }).eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) {
         setServicesState(services.map(s => s.id === id ? { ...s, ...service } : s));
     }
@@ -558,7 +574,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteService = async (id: string) => {
-    const { error } = await supabase.from('services').delete().eq('id', id);
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from('services').delete().eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) setServicesState(services.filter(s => s.id !== id));
     return { error };
   };
@@ -603,7 +620,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfileData = async (data: ProfileData) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -637,18 +654,30 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setTeachingMedia = async (media: MediaFile[]) => {
-    if (!session) return { error: "Not authenticated" };
-    await supabase.from('teaching_media').delete().eq('profile_id', session.user.id);
-    const mediaToInsert = media.map(m => ({
-      profile_id: session.user.id,
-      type: m.type,
-      url: m.url,
-      name: m.name,
-      size: m.size
-    }));
-    const { error } = await supabase.from('teaching_media').insert(mediaToInsert);
-    if (!error) setTeachingMediaState(media);
-    return { error };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may manage teaching media.") };
+    const { data: stored, error: readError } = await supabase.from("teaching_media")
+      .select("id,url").eq("profile_id", PORTFOLIO_OWNER_ID);
+    if (readError) return { error: readError };
+    const existing = stored || [];
+    const wantedUrls = new Set(media.map(item => item.url));
+    const existingUrls = new Set(existing.map(item => item.url));
+    const additions = media.filter(item => !existingUrls.has(item.url));
+    const removedIds = existing.filter(item => !wantedUrls.has(item.url)).map(item => item.id);
+    if (additions.length) {
+      const { error: insertError } = await supabase.from("teaching_media").insert(additions.map(item => ({
+        profile_id: PORTFOLIO_OWNER_ID,
+        type: item.type === "logo" ? "image" : item.type,
+        url: item.url, name: item.name, size: item.size
+      })));
+      if (insertError) return { error: insertError };
+    }
+    if (removedIds.length) {
+      const { error: deleteError } = await supabase.from("teaching_media")
+        .delete().in("id", removedIds).eq("profile_id", PORTFOLIO_OWNER_ID);
+      if (deleteError) return { error: deleteError };
+    }
+    setTeachingMediaState(media);
+    return { error: null };
   };
 
   const sendMessage = async (msg: { name: string; email: string; subject: string; message: string }) => {
