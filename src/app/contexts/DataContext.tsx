@@ -111,8 +111,9 @@ interface DataContextType {
   deleteService: (id: string) => Promise<{ error: any }>;
   incrementProjectView: (id: string) => Promise<void>;
   incrementProfileView: () => Promise<void>;
-  markMessageRead: (id: string) => Promise<void>;
-  deleteMessage: (id: string) => Promise<void>;
+  markMessageRead: (id: string) => Promise<{ error: any }>;
+  deleteMessage: (id: string) => Promise<{ error: any }>;
+  refreshMessages: () => Promise<{ error: any }>;
   setProfileData: (data: ProfileData) => Promise<{ error: any }>;
   setTeachingMedia: (media: MediaFile[]) => Promise<{ error: any }>;
   sendMessage: (msg: { name: string; email: string; subject: string; message: string }) => Promise<{ error: any }>;
@@ -571,18 +572,34 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await supabase.rpc('increment_profile_view', { profile_id: PORTFOLIO_OWNER_ID });
   };
 
-  const markMessageRead = async (id: string) => {
-    const { error } = await supabase.from('messages').update({ is_read: true }).eq('id', id);
-    if (!error) {
-      setMessagesState(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
+  const refreshMessages = async (): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner can access messages.") };
+    const { data, error } = await supabase.from("messages").select("*")
+      .eq("to_user_id", PORTFOLIO_OWNER_ID).order("created_at", { ascending: false });
+    if (!error && data) {
+      setMessagesState(data.map((message: any) => ({
+        id: message.id, name: message.name, email: message.email,
+        subject: message.subject, message: message.message,
+        isRead: message.is_read, createdAt: message.created_at
+      })));
     }
+    return { error };
   };
 
-  const deleteMessage = async (id: string) => {
-    const { error } = await supabase.from('messages').delete().eq('id', id);
-    if (!error) {
-      setMessagesState(messages.filter(m => m.id !== id));
-    }
+  const markMessageRead = async (id: string): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from("messages").update({ is_read: true })
+      .eq("id", id).eq("to_user_id", PORTFOLIO_OWNER_ID);
+    if (!error) setMessagesState(current => current.map(message => message.id === id ? { ...message, isRead: true } : message));
+    return { error };
+  };
+
+  const deleteMessage = async (id: string): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from("messages").delete()
+      .eq("id", id).eq("to_user_id", PORTFOLIO_OWNER_ID);
+    if (!error) setMessagesState(current => current.filter(message => message.id !== id));
+    return { error };
   };
 
   const updateProfileData = async (data: ProfileData) => {
@@ -670,7 +687,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addProject, updateProject, deleteProject,
       addService, updateService, deleteService,
       incrementProjectView, incrementProfileView,
-      markMessageRead, deleteMessage,
+      markMessageRead, deleteMessage, refreshMessages,
       setProfileData: updateProfileData, setTeachingMedia, sendMessage, login, logout
     }}>
       {children}
