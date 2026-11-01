@@ -123,7 +123,9 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // A public UUID, not a credential. It identifies the one portfolio owner.
-const PORTFOLIO_OWNER_ID = (import.meta.env.VITE_PORTFOLIO_OWNER_ID || "").trim().toLowerCase();
+const configuredOwnerId = (import.meta.env.VITE_PORTFOLIO_OWNER_ID || "").trim().toLowerCase();
+const PORTFOLIO_OWNER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(configuredOwnerId)
+  ? configuredOwnerId : "";
 const isOwnerSession = (value: Session | null): boolean =>
   Boolean(PORTFOLIO_OWNER_ID && value?.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID);
 
@@ -228,9 +230,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           behance: profile.behance || "",
           website: profile.website || "",
           viewCount: profile.view_count || 0,
-          yearsExperience: profile.years_experience || "3+",
-          projectsDelivered: profile.projects_delivered || "50+",
-          activeUsers: profile.active_users || "10K+",
+          yearsExperience: profile.years_experience || "",
+          projectsDelivered: profile.projects_delivered || "",
+          activeUsers: profile.active_users || "",
           tutorDescription: profile.tutor_description || "",
           tutorLink: profile.tutor_link || "",
           examExpert: profile.exam_expert || "",
@@ -338,9 +340,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             behance: profile.behance || "",
             website: profile.website || "",
             viewCount: profile.view_count || 0,
-            yearsExperience: profile.years_experience || "3+",
-            projectsDelivered: profile.projects_delivered || "50+",
-            activeUsers: profile.active_users || "10K+",
+            yearsExperience: profile.years_experience || "",
+            projectsDelivered: profile.projects_delivered || "",
+            activeUsers: profile.active_users || "",
             tutorDescription: profile.tutor_description || "",
             tutorLink: profile.tutor_link || "",
             examExpert: profile.exam_expert || "",
