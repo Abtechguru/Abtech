@@ -2,12 +2,15 @@ import { motion } from "motion/react";
 import { Save, User, Mail, Phone, MapPin, Github, Linkedin, Globe, Lock, Bell, Upload, X, Dribbble, MessageCircle, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useData } from "../../contexts/DataContext";
+import { supabase } from "../../utils/supabase";
 import { MediaUploader } from "./MediaUploader";
 
 export function Settings() {
-  const { profileData, setProfileData, teachingMedia, setTeachingMedia, isLoading } = useData();
+  const { profileData, setProfileData, teachingMedia, setTeachingMedia, isLoading, user } = useData();
   const [profile, setProfile] = useState(profileData);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(profileData.profilePhoto || "");
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [currentTeachingMedia, setCurrentTeachingMedia] = useState(teachingMedia);
 
   // Sync local state when profileData finishes loading from Supabase
@@ -19,30 +22,43 @@ export function Settings() {
     }
   }, [profileData, teachingMedia, isLoading]);
 
-  const [notifications, setNotifications] = useState({
-    emailMessages: true,
-    emailWeeklyReport: true,
-    emailProjectViews: false,
-    pushMessages: true,
-    pushWeeklyReport: false
-  });
+  const [security, setSecurity] = useState({ newPassword: "", confirmPassword: "" });
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState<{ ok: boolean; message: string } | null>(null);
 
-  const [security, setSecurity] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
-
-  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setProfilePhotoPreview(result);
-        setProfile({ ...profile, profilePhoto: result });
-      };
-      reader.readAsDataURL(file);
+  const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    setPhotoError(null);
+    if (!user) {
+      setPhotoError("Your editor session has expired. Please sign in again.");
+      return;
+    }
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setPhotoError("Select a JPEG, PNG, WebP or GIF under 5 MB.");
+      return;
+    }
+    setIsPhotoUploading(true);
+    try {
+      const ext = file.name.split(".").at(-1)?.toLowerCase() || "jpg";
+      const path = "profile-media/" + user.id + "/" + crypto.randomUUID() + "." + ext;
+      const { error: uploadError } = await supabase.storage.from("media").upload(path, file, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("media").getPublicUrl(path);
+      if (!data.publicUrl) throw new Error("Storage did not provide a usable photo URL.");
+      setProfilePhotoPreview(data.publicUrl);
+      setProfile(previous => ({ ...previous, profilePhoto: data.publicUrl }));
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : "Photo upload failed. Please try again.");
+    } finally {
+      setIsPhotoUploading(false);
     }
   };
 
@@ -69,19 +85,30 @@ export function Settings() {
     }
   };
 
-  const handleSaveNotifications = () => {
-    console.log("Saving notifications:", notifications);
-    alert("Notification preferences updated!");
-  };
-
-  const handleChangePassword = () => {
-    if (security.newPassword !== security.confirmPassword) {
-      alert("Passwords don't match!");
+  const handleChangePassword = async () => {
+    setPasswordNotice(null);
+    if (security.newPassword.length < 12) {
+      setPasswordNotice({ ok: false, message: "Use at least 12 characters in your new password." });
       return;
     }
-    console.log("Changing password");
-    alert("Password changed successfully!");
-    setSecurity({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    if (security.newPassword !== security.confirmPassword) {
+      setPasswordNotice({ ok: false, message: "The two passwords do not match." });
+      return;
+    }
+    setPasswordBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: security.newPassword });
+      if (error) {
+        setPasswordNotice({ ok: false, message: error.message || "Password change was unsuccessful. Try again." });
+      } else {
+        setPasswordNotice({ ok: true, message: "Your account password was updated successfully." });
+        setSecurity({ newPassword: "", confirmPassword: "" });
+      }
+    } catch {
+      setPasswordNotice({ ok: false, message: "The authentication service is unavailable. Please try again." });
+    } finally {
+      setPasswordBusy(false);
+    }
   };
 
   return (
@@ -131,6 +158,7 @@ export function Settings() {
                   type="file"
                   accept="image/*"
                   onChange={handleProfilePhotoUpload}
+                  disabled={isPhotoUploading}
                   className="hidden"
                   id="profile-photo-upload"
                 />
@@ -142,8 +170,10 @@ export function Settings() {
                   <span>Upload Photo</span>
                 </label>
                 <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                  JPG, PNG or GIF (Max 5MB)
+                  JPEG, PNG, WebP or GIF (Max 5 MB). Photos are uploaded to storage, not embedded in your profile.
                 </p>
+                {isPhotoUploading && <p role="status" className="text-sm mt-2 text-[var(--orange)]">Uploading photo…</p>}
+                {photoError && <p role="alert" className="text-sm mt-2 text-red-700">{photoError}</p>}
               </div>
             </div>
           </div>
@@ -355,7 +385,7 @@ export function Settings() {
           <div className="flex gap-4">
             <button
                 onClick={handleSaveProfile}
-                disabled={isSaving}
+                disabled={isSaving || isPhotoUploading}
                 className="px-6 py-3 bg-[var(--blue-dark)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-blue-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isSaving ? (
@@ -369,9 +399,15 @@ export function Settings() {
             <button
                 onClick={async () => {
                     setIsSaving(true);
-                    await setTeachingMedia(currentTeachingMedia);
-                    setIsSaving(false);
-                    alert("Teaching media synchronized!");
+                    try {
+                      const { error } = await setTeachingMedia(currentTeachingMedia);
+                      if (error) alert("Unable to sync teaching media: " + (error.message || "Please try again."));
+                      else alert("Teaching media saved successfully.");
+                    } catch {
+                      alert("Unable to sync teaching media. Please try again.");
+                    } finally {
+                      setIsSaving(false);
+                    }
                 }}
                 disabled={isSaving}
                 className="px-6 py-3 bg-white border border-[var(--blue-dark)] text-[var(--blue-dark)] rounded-xl flex items-center gap-2 hover:bg-[var(--secondary)] transition-all disabled:opacity-50"
@@ -382,83 +418,18 @@ export function Settings() {
           </div>
         </motion.div>
 
-        {/* Notification Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)]"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-[var(--orange-glow)] flex items-center justify-center">
-              <Bell className="w-6 h-6 text-[var(--orange)]" />
-            </div>
-            <h2 className="text-2xl">Notifications</h2>
-          </div>
-
-          <div className="space-y-4 mb-6">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--secondary)] border border-[var(--border)]">
-              <div>
-                <h4 className="mb-1">New Messages</h4>
-                <p className="text-sm text-[var(--muted-foreground)]">Receive email notifications for new contact messages</p>
-              </div>
-              <label className="relative inline-block w-12 h-6">
-                <input
-                  type="checkbox"
-                  checked={notifications.emailMessages}
-                  onChange={(e) => setNotifications({ ...notifications, emailMessages: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-full h-full bg-[var(--muted)] rounded-full peer-checked:bg-[var(--orange)] transition-all cursor-pointer">
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6" />
-                </div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--secondary)] border border-[var(--border)]">
-              <div>
-                <h4 className="mb-1">Weekly Report</h4>
-                <p className="text-sm text-[var(--muted-foreground)]">Get a weekly summary of your portfolio analytics</p>
-              </div>
-              <label className="relative inline-block w-12 h-6">
-                <input
-                  type="checkbox"
-                  checked={notifications.emailWeeklyReport}
-                  onChange={(e) => setNotifications({ ...notifications, emailWeeklyReport: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-full h-full bg-[var(--muted)] rounded-full peer-checked:bg-[var(--orange)] transition-all cursor-pointer">
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6" />
-                </div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--secondary)] border border-[var(--border)]">
-              <div>
-                <h4 className="mb-1">Project Views</h4>
-                <p className="text-sm text-[var(--muted-foreground)]">Notify when projects reach view milestones</p>
-              </div>
-              <label className="relative inline-block w-12 h-6">
-                <input
-                  type="checkbox"
-                  checked={notifications.emailProjectViews}
-                  onChange={(e) => setNotifications({ ...notifications, emailProjectViews: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-full h-full bg-[var(--muted)] rounded-full peer-checked:bg-[var(--orange)] transition-all cursor-pointer">
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6" />
-                </div>
-              </label>
+        {/* Notification delivery is not configured; avoid presenting inactive controls as functional. */}
+        <section className="p-6 rounded-2xl bg-white border border-[var(--border)]" aria-label="Notification status">
+          <div className="flex gap-4 items-start">
+            <Bell className="w-6 h-6 text-[var(--orange)] shrink-0" />
+            <div>
+              <h2 className="text-xl font-bold">Notifications</h2>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                Email and push notification delivery has not been configured. Incoming contact messages are available under Inquiries.
+              </p>
             </div>
           </div>
-
-          <button
-            onClick={handleSaveNotifications}
-            className="px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all"
-          >
-            <Save className="w-5 h-5" /> Save Preferences
-          </button>
-        </motion.div>
+        </section>
 
         {/* Security Settings */}
         <motion.div
@@ -475,15 +446,6 @@ export function Settings() {
           </div>
 
           <div className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm mb-2">Current Password</label>
-              <input
-                type="password"
-                value={security.currentPassword}
-                onChange={(e) => setSecurity({ ...security, currentPassword: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] focus:border-[var(--orange)] focus:outline-none"
-              />
-            </div>
             <div>
               <label className="block text-sm mb-2">New Password</label>
               <input
@@ -506,10 +468,12 @@ export function Settings() {
 
           <button
             onClick={handleChangePassword}
+            disabled={passwordBusy}
             className="px-6 py-3 bg-[var(--orange)] text-white rounded-xl flex items-center gap-2 hover:shadow-lg hover:shadow-[var(--orange-glow)] transition-all"
           >
-            <Lock className="w-5 h-5" /> Change Password
+            <Lock className="w-5 h-5" /> {passwordBusy ? "Updating password…" : "Change Password"}
           </button>
+          <p role="status" aria-live="polite" className={"mt-4 text-sm " + (passwordNotice?.ok ? "text-green-700" : "text-red-700")}>{passwordNotice?.message}</p>
         </motion.div>
       </div>
     </div>

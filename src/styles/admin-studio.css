@@ -1,0 +1,99 @@
+/* ABTECH Studio — light editorial admin workspace, isolated from public experience */
+.ip-admin {
+  --background: #f4f3ef;
+  --foreground: #1c2429;
+  --card: #fff;
+  --border: #dfe2e0;
+  --secondary: #eceeea;
+  --muted: #e7e9e6;
+  --muted-foreground: #626d74;
+  --blue-primary: #d8643f;
+  --blue-dark: #24303a;
+  --orange: #d8643f;
+  --orange-glow: rgba(216,100,63,.14);
+  --ip-admin-sidebar-size: 270px;
+  min-height: 100vh;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Inter,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.ip-admin * { box-sizing: border-box; }
+.ip-admin button { cursor: pointer; }
+.ip-admin button:disabled { cursor: not-allowed; }
+.ip-admin :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.ip-admin-sidebar {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 65;
+  width: var(--ip-admin-sidebar-size);
+  display: flex; flex-direction: column;
+  background: #1a1d22; color: #f3f0ea;
+  border-right: 1px solid #373a41;
+  transition: width .22s ease,transform .22s ease;
+}
+.ip-admin-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 94px; padding: 0 23px; border-bottom: 1px solid #34373d; }
+.ip-admin-brand { display: flex; align-items: center; gap: 12px; color: #f4f1ec; text-decoration: none; white-space: nowrap; overflow: hidden; }
+.ip-admin-brand-mark { flex: none; display: grid; place-items: center; height: 41px; width: 41px; border-radius: 7px; border: 1px solid #f0784f; font-weight: 850; font-size: 27px; letter-spacing: -.1em; }
+.ip-admin-brand-mark span { color: #f0784f; }
+.ip-admin-brand-name { font-size: 14px; font-weight: 850; letter-spacing: .08em; }
+.ip-admin-brand-name small { font-size: 10px; display: block; color: #ed9a7d; font-weight: 700; letter-spacing: .19em; }
+.ip-admin-workspace { display: flex; align-items: center; gap: 9px; padding: 20px 23px 12px; color: #888d94; font-size: 9px; font-weight: 800; letter-spacing: .13em; white-space: nowrap; }
+.ip-admin-workspace-dot { width: 7px; height: 7px; background: #95bd97; border-radius: 50%; }
+.ip-admin-navigation { overflow-y: auto; flex: 1; padding: 6px 12px 15px; scrollbar-color: #474c50 transparent; }
+.ip-admin-nav-group { padding: 13px 0; }
+.ip-admin-group-label { display: block; padding: 11px 13px 15px; color: #8d919a; font-size: 9px; font-weight: 800; letter-spacing: .2em; }
+.ip-admin-nav-item { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; min-height: 44px; margin: 2px 0; padding: 12px 13px; border: 0; border-radius: 5px; text-align: left; background: transparent; color: #b5b8bd; font-size: 12px; font-weight: 680; transition: background .18s,color .18s; }
+.ip-admin-nav-item > svg { flex: none; }
+.ip-admin-nav-item > span:not(.ip-admin-active-mark) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-admin-nav-item:hover { background: #2b3035; color: #fff; }
+.ip-admin-nav-active { background: #353034 !important; color: #ffac8c !important; }
+.ip-admin-active-mark { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); width: 4px; height: 21px; background: #ff7849; border-radius: 6px; }
+.ip-admin-sidebar-bottom { border-top: 1px solid #34373d; padding: 12px; display: grid; gap: 4px; }
+.ip-admin-sidebar-bottom a, .ip-admin-sidebar-bottom button { display: flex; align-items: center; gap: 13px; min-height: 44px; padding: 10px 14px; border: 0; border-radius: 4px; text-decoration: none; background: transparent; color: #b8b8bb; font-size: 12px; font-weight: 700; text-align: left; }
+.ip-admin-sidebar-bottom a:hover, .ip-admin-sidebar-bottom button:hover { color: #fff; background: #34373d; }
+.ip-admin-collapse { border: 0; border-top: 1px solid #363940; background: #24272c; color: #b7b8bf; display: grid; place-items: center; min-height: 43px; }
+.ip-admin-collapse:hover { background: #373a40; color: #f6f4ef; }
+.ip-admin-main { min-height: 100vh; margin-left: var(--ip-admin-sidebar-size); transition: margin-left .22s ease; }
+.ip-admin-topbar { position: sticky; z-index: 39; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 93px; padding: 17px clamp(20px,3.2vw,50px); border-bottom: 1px solid #e1e0dc; background: rgba(250,249,245,.95); backdrop-filter: blur(15px); }
+.ip-admin-topbar-title { display: flex; align-items: center; gap: 16px; }
+.ip-admin-topbar-eyebrow { display: block; font-size: 9px; font-weight: 800; color: #bf5f42; letter-spacing: .13em; }
+.ip-admin-topbar h2 { font-family: Outfit,Inter,sans-serif; font-weight: 650; margin: 3px 0 0; font-size: 24px; letter-spacing: -.04em; color: #24303a; }
+.ip-admin-topbar-actions { display: flex; align-items: center; gap: 12px; }
+.ip-admin-topbar-actions a { text-decoration: none; display: inline-flex; align-items: center; gap: 10px; min-height: 43px; padding: 10px 15px; border: 1px solid #d5d7d2; border-radius: 5px; color: #24303a; font-size: 12px; font-weight: 780; }
+.ip-admin-topbar-actions a:hover { border-color: #d8643f; color: #d8643f; }
+.ip-admin-topbar-actions button { display: grid; place-items: center; width: 43px; height: 43px; border: 1px solid #d5d7d2; border-radius: 5px; background: white; color: #29323a; }
+.ip-admin-topbar-actions button:hover { color: #cf5e3c; border-color: #d8643f; }
+.ip-admin-body { max-width: 1650px; padding: clamp(20px,3.2vw,50px); margin-inline: auto; }
+.ip-admin-body > div > div:first-child > h1 { color: #242b31; font-family: Outfit,Inter,sans-serif; font-size: clamp(30px,3.5vw,44px); letter-spacing: -.06em; }
+.ip-admin-body .text-\[var\(--blue-dark\)\] { color: var(--blue-dark); }
+.ip-admin-mobile-menu, .ip-admin-mobile-close { display: none; }
+.ip-admin-overlay { display: none; }
+/* Compact desktop sidebar */
+@media (min-width: 901px) {
+  .ip-admin-compact { --ip-admin-sidebar-size: 77px; }
+  .ip-admin-compact .ip-admin-brand-row { padding-inline: 17px; }
+  .ip-admin-compact .ip-admin-brand-name, .ip-admin-compact .ip-admin-workspace, .ip-admin-compact .ip-admin-group-label, .ip-admin-compact .ip-admin-nav-item > span, .ip-admin-compact .ip-admin-sidebar-bottom span { display: none; }
+  .ip-admin-compact .ip-admin-navigation { padding-inline: 9px; padding-top: 25px; }
+  .ip-admin-compact .ip-admin-nav-item { justify-content: center; padding: 13px 8px; }
+  .ip-admin-compact .ip-admin-active-mark { display: none; }
+  .ip-admin-compact .ip-admin-sidebar-bottom a, .ip-admin-compact .ip-admin-sidebar-bottom button { justify-content: center; }
+}
+@media (max-width: 900px) {
+  .ip-admin-sidebar { width: min(300px, 86vw); transform: translateX(-110%); }
+  .ip-admin-sidebar-open { transform: translateX(0); }
+  .ip-admin-overlay { display: block; position: fixed; z-index: 62; inset: 0; background: rgba(8,10,14,.58); border: 0; }
+  .ip-admin-main { margin-left: 0; }
+  .ip-admin-collapse { display: none; }
+  .ip-admin-mobile-menu, .ip-admin-mobile-close { display: grid; place-items: center; border: 0; background: transparent; color: inherit; min-height: 42px; min-width: 42px; }
+  .ip-admin-topbar { min-height: 75px; }
+}
+@media (max-width: 560px) {
+  .ip-admin-topbar { padding-inline: 18px; }
+  .ip-admin-topbar-actions a { padding: 10px; font-size: 0; gap: 0; }
+  .ip-admin-topbar-actions a svg { width: 18px; height: 18px; }
+  .ip-admin-topbar-title { gap: 7px; }
+  .ip-admin-topbar h2 { font-size: 20px; }
+  .ip-admin-body { padding: 19px 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ip-admin *, .ip-admin *::before, .ip-admin *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

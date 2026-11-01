@@ -1,0 +1,35 @@
+name: Portfolio build verification
+
+on:
+  push:
+    branches:
+      - main
+      - feat/iconic-portfolio-redesign
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Portfolio integrity regression tests
+        run: node --test tests/*.test.mjs
+      - name: Static TypeScript check
+        run: npm exec --yes --package typescript@5.9.3 -- tsc --noEmit
+      - name: Build production bundle
+        run: npm run build

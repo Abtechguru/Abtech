@@ -1,103 +1,105 @@
-import { motion } from "motion/react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard,
-  FolderKanban,
-  Code2,
-  Briefcase,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  GraduationCap
+  BarChart3, BookOpen, Briefcase, Code2, ExternalLink, FolderKanban,
+  LayoutDashboard, LogOut, Menu, MessageSquare, PanelLeftClose,
+  PanelLeftOpen, Settings, X
 } from "lucide-react";
-import { useState } from "react";
+import "../../../styles/admin-studio.css";
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onLogout: () => void;
 }
 
-export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+const groups = [
+  {
+    label: "WORKSPACE",
+    items: [
+      { id: "overview", label: "Overview", icon: LayoutDashboard },
+      { id: "projects", label: "Projects", icon: FolderKanban },
+      { id: "skills", label: "Skills", icon: Code2 },
+      { id: "experience", label: "Experience", icon: Briefcase },
+      { id: "teaching", label: "Teaching", icon: BookOpen }
+    ]
+  },
+  {
+    label: "OPERATIONS",
+    items: [
+      { id: "pricing", label: "Services & pricing", icon: Briefcase },
+      { id: "messages", label: "Inquiries", icon: MessageSquare },
+      { id: "analytics", label: "Analytics", icon: BarChart3 }
+    ]
+  },
+  {
+    label: "ACCOUNT",
+    items: [{ id: "settings", label: "Settings", icon: Settings }]
+  }
+];
 
-  const menuItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "projects", label: "Projects", icon: FolderKanban },
-    { id: "pricing", label: "Pricing", icon: Briefcase },
-    { id: "skills", label: "Skills", icon: Code2 },
-    { id: "experience", label: "Experience", icon: Briefcase },
-    { id: "messages", label: "Messages", icon: MessageSquare },
-    { id: "analytics", label: "Analytics", icon: BarChart3 },
-    { id: "teaching", label: "Teaching Career", icon: GraduationCap },
-    { id: "settings", label: "Settings", icon: Settings }
-  ];
+export function AdminLayout({ children, activeTab, onTabChange, onLogout }: AdminLayoutProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const current = groups.flatMap(group => group.items).find(item => item.id === activeTab);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", dismiss);
+    return () => window.removeEventListener("keydown", dismiss);
+  }, [mobileOpen]);
+
+  const navigate = (tab: string) => {
+    onTabChange(tab);
+    setMobileOpen(false);
+  };
 
   return (
-    <div className="dark min-h-screen bg-[var(--background)] text-[var(--foreground)] flex">
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isSidebarOpen ? 280 : 80 }}
-        className="fixed left-0 top-0 bottom-0 bg-[var(--card)] border-r border-[var(--border)] z-40 transition-all"
-      >
-        <div className="p-6 flex items-center justify-between border-b border-[var(--border)]">
-          {isSidebarOpen && (
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-[var(--orange)] flex items-center justify-center">
-                <Code2 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-lg">Admin Panel</h2>
-                <p className="text-xs text-[var(--muted-foreground)]">Portfolio Manager</p>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-8 h-8 rounded-lg bg-[var(--secondary)] flex items-center justify-center hover:bg-[var(--muted)] transition-all"
-          >
-            {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
-        </div>
-
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item) => (
-            <motion.button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              whileHover={{ x: 4 }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === item.id
-                  ? "bg-[var(--orange)] text-white"
-                  : "text-[var(--muted-foreground)] hover:bg-[var(--secondary)]"
-              }`}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {isSidebarOpen && <span>{item.label}</span>}
-            </motion.button>
-          ))}
-        </nav>
-
-        <div className="absolute bottom-6 left-0 right-0 px-4">
-          <a
-            href="/"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--secondary)] transition-all"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {isSidebarOpen && <span>Logout</span>}
+    <div className={"ip-admin" + (compact ? " ip-admin-compact" : "")}>
+      {mobileOpen && <button type="button" className="ip-admin-overlay" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+      <aside className={"ip-admin-sidebar" + (mobileOpen ? " ip-admin-sidebar-open" : "")} aria-label="Content studio navigation">
+        <div className="ip-admin-brand-row">
+          <a className="ip-admin-brand" href="/" title="ABTECH portfolio home">
+            <span className="ip-admin-brand-mark">a<span>.</span></span>
+            <span className="ip-admin-brand-name">ABTECH <small>STUDIO</small></span>
           </a>
+          <button className="ip-admin-mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={21} /></button>
         </div>
-      </motion.aside>
+        <div className="ip-admin-workspace"><span className="ip-admin-workspace-dot" /> PERSONAL PORTFOLIO CMS</div>
+        <nav className="ip-admin-navigation" aria-label="Admin sections">
+          {groups.map(group => <div className="ip-admin-nav-group" key={group.label}>
+            <span className="ip-admin-group-label">{group.label}</span>
+            {group.items.map(item => <button type="button" key={item.id} title={item.label} aria-pressed={activeTab === item.id} className={"ip-admin-nav-item" + (activeTab === item.id ? " ip-admin-nav-active" : "")} onClick={() => navigate(item.id)}>
+              <item.icon size={18} strokeWidth={1.8} /><span>{item.label}</span>
+              {activeTab === item.id && <span className="ip-admin-active-mark" />}
+            </button>)}
+          </div>)}
+        </nav>
+        <div className="ip-admin-sidebar-bottom">
+          <a href="/" target="_blank" rel="noopener noreferrer"><ExternalLink size={17} /><span>View public website</span></a>
+          <button type="button" onClick={onLogout}><LogOut size={17} /><span>Sign out securely</span></button>
+        </div>
+        <button className="ip-admin-collapse" type="button" aria-label={compact ? "Expand sidebar" : "Collapse sidebar"} title={compact ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setCompact(!compact)}>
+          {compact ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+        </button>
+      </aside>
 
-      {/* Main Content */}
-      <main className={`flex-1 transition-all ${isSidebarOpen ? 'ml-[280px]' : 'ml-[80px]'}`}>
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
+      <div className="ip-admin-main">
+        <header className="ip-admin-topbar">
+          <div className="ip-admin-topbar-title">
+            <button className="ip-admin-mobile-menu" type="button" aria-expanded={mobileOpen} aria-label="Open admin navigation" onClick={() => setMobileOpen(true)}><Menu size={22} /></button>
+            <div><span className="ip-admin-topbar-eyebrow">CONTENT STUDIO / {activeTab.toUpperCase()}</span><h2>{current?.label || "Overview"}</h2></div>
+          </div>
+          <div className="ip-admin-topbar-actions">
+            <a href="/" target="_blank" rel="noopener noreferrer">Preview site <ExternalLink size={16} /></a>
+            <button type="button" onClick={onLogout} aria-label="Sign out"><LogOut size={18} /></button>
+          </div>
+        </header>
+        <main className="ip-admin-body">{children}</main>
+      </div>
     </div>
   );
 }

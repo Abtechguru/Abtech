@@ -1,113 +1,95 @@
-import { motion } from "motion/react";
-import { Eye, TrendingUp, Users, Target, BarChart3, ArrowUpRight } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowUpRight, BarChart3, Eye, FolderKanban, MessageSquare, MousePointerClick } from "lucide-react";
 import { useData } from "../../contexts/DataContext";
 
-export function Analytics() {
-  const { profileData, projects } = useData();
+interface AnalyticsProps {
+  onNavigate: (tab: string) => void;
+}
 
-  const totalProjectViews = projects.reduce((acc, p) => acc + (p.viewCount || 0), 0);
-
+export function Analytics({ onNavigate }: AnalyticsProps) {
+  const { profileData, projects, messages, isLoading } = useData();
+  const totalProjectViews = projects.reduce((sum, project) => sum + (Number(project.viewCount) || 0), 0);
+  const profileViews = Number(profileData.viewCount) || 0;
+  const unreadMessages = messages.filter(message => !message.isRead).length;
+  const sortedProjects = useMemo(
+    () => [...projects].sort((left, right) => (Number(right.viewCount) || 0) - (Number(left.viewCount) || 0)),
+    [projects]
+  );
   const stats = [
-    { label: "Profile Views", value: profileData.viewCount, icon: Users, color: "bg-blue-500", trend: "+12%" },
-    { label: "Project Clicks", value: totalProjectViews, icon: Eye, color: "bg-purple-500", trend: "+24%" },
-    { label: "Retention Rate", value: "68%", icon: TrendingUp, color: "bg-green-500", trend: "+5%" },
-    { label: "Reach", value: "2.4K", icon: Target, color: "bg-orange-500", trend: "+18%" }
+    { label: "Profile views", value: profileViews, description: "Stored profile view counter", icon: Eye },
+    { label: "Project opens", value: totalProjectViews, description: "Sum of recorded project views", icon: MousePointerClick },
+    { label: "Managed projects", value: projects.length, description: "Projects in the content database", icon: FolderKanban },
+    { label: "Contact inquiries", value: messages.length, description: unreadMessages + " currently unread", icon: MessageSquare }
   ];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl mb-2 font-bold">Analytics Dashboard</h1>
-        <p className="text-[var(--muted-foreground)]">Real-time performance tracking for your portfolio</p>
+    <div className="space-y-7">
+      <div>
+        <span className="text-xs font-black uppercase tracking-[.16em] text-[var(--orange)]">STUDIO / MEASUREMENT</span>
+        <h1 className="mt-3 text-3xl md:text-4xl font-black tracking-tight text-[var(--blue-dark)]">Analytics, without guesswork.</h1>
+        <p className="mt-2 text-sm text-[var(--muted-foreground)] max-w-3xl">
+          A transparent view of available portfolio counters. These are cumulative database values, not unique visitors or verified conversion rates.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="p-6 rounded-3xl bg-white border border-[var(--border)] shadow-sm hover:shadow-xl transition-all group"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-2xl ${stat.color} flex items-center justify-center text-white shadow-lg transform group-hover:rotate-12 transition-transform`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-1 text-green-500 text-sm font-bold">
-                <ArrowUpRight className="w-4 h-4" />
-                {stat.trend}
-              </div>
-            </div>
-            <h3 className="text-[var(--muted-foreground)] text-sm font-bold uppercase tracking-widest mb-1">{stat.label}</h3>
-            <p className="text-4xl font-black text-[var(--blue-dark)]">{stat.value.toLocaleString()}</p>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {stats.map(item => <article key={item.label} className="bg-white rounded-xl border border-[var(--border)] p-6">
+          <div className="flex items-center justify-between mb-7">
+            <span className="text-[10px] tracking-wider uppercase font-black text-[var(--muted-foreground)]">{item.label}</span>
+            <item.icon className="text-[var(--orange)]" size={21} strokeWidth={1.7} />
+          </div>
+          <div className="text-4xl font-black tabular-nums text-[var(--blue-dark)]">{isLoading ? "—" : item.value.toLocaleString()}</div>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--muted-foreground)]">{isLoading ? "Loading your records…" : item.description}</p>
+        </article>)}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Top Projects */}
-        <div className="lg:col-span-2 p-8 rounded-[32px] bg-white border border-[var(--border)] shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-[var(--blue-primary)]" />
-              Project Performance
-            </h3>
-            <button className="text-sm font-bold text-[var(--blue-primary)] hover:underline">View All</button>
+      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
+        <section className="rounded-xl bg-white border border-[var(--border)] p-6 md:p-8">
+          <div className="flex flex-wrap gap-4 items-start justify-between mb-7">
+            <div>
+              <span className="text-xs font-black uppercase tracking-[.14em] text-[var(--orange)]">RECORDED ACTIVITY</span>
+              <h2 className="mt-2 font-bold text-2xl text-[var(--blue-dark)]">Project view counts</h2>
+            </div>
+            <button type="button" onClick={() => onNavigate("projects")} className="inline-flex gap-2 items-center text-xs font-bold text-[var(--orange)] hover:underline">Manage projects <ArrowUpRight size={16} /></button>
           </div>
-          
-          <div className="space-y-6">
-            {projects.slice(0, 5).sort((a, b) => b.viewCount - a.viewCount).map((project, i) => (
-              <div key={project.id} className="flex items-center justify-between group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--secondary)] flex items-center justify-center font-black text-[var(--blue-primary)]">
-                    {i + 1}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[var(--blue-dark)] group-hover:text-[var(--blue-primary)] transition-colors">{project.title}</h4>
-                    <p className="text-xs text-[var(--muted-foreground)] font-bold">{project.category}</p>
-                  </div>
+          {isLoading ? <p className="py-12 text-[var(--muted-foreground)]" role="status">Loading project activity…</p> : sortedProjects.length === 0 ? (
+            <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-lg">
+              <BarChart3 size={30} className="mx-auto text-[var(--orange)] mb-3" />
+              <p className="font-bold text-[var(--blue-dark)]">No database projects yet</p>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2">Create a project to start collecting view counters.</p>
+            </div>
+          ) : <div className="space-y-5">
+            {sortedProjects.map(project => {
+              const views = Math.max(0, Number(project.viewCount) || 0);
+              const percentage = totalProjectViews > 0 ? Math.max(0, Math.min(100, views / totalProjectViews * 100)) : 0;
+              return <div key={project.id}>
+                <div className="flex justify-between items-start gap-4 mb-2">
+                  <div className="min-w-0"><h3 className="text-sm font-bold text-[var(--blue-dark)] truncate">{project.title}</h3><p className="text-xs text-[var(--muted-foreground)]">{project.category || "Uncategorized"}</p></div>
+                  <span className="text-sm font-black text-[var(--blue-dark)] tabular-nums">{views.toLocaleString()} <span className="text-[10px] font-medium text-[var(--muted-foreground)]">views</span></span>
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="w-32 h-2 bg-[var(--secondary)] rounded-full overflow-hidden">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min((project.viewCount / totalProjectViews) * 100 || 0, 100)}%` }}
-                        className="h-full bg-[var(--blue-primary)] rounded-full"
-                    />
-                  </div>
-                  <span className="font-black text-[var(--blue-dark)] min-w-[3ch]">{project.viewCount}</span>
+                <div className="h-2 bg-[var(--secondary)] rounded-full overflow-hidden" role="progressbar" aria-label={project.title + " share of recorded project views"} aria-valuenow={Math.round(percentage)} aria-valuemin={0} aria-valuemax={100}>
+                  <div className="h-full rounded-full bg-[var(--orange)]" style={{ width: percentage + "%" }} />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              </div>;
+            })}
+            <p className="text-xs text-[var(--muted-foreground)] pt-3 border-t border-[var(--border)]">
+              Each bar shows its share of the recorded project view total, not unique people or engagement rate.
+            </p>
+          </div>}
+        </section>
 
-        {/* Quick Insights */}
-        <div className="p-8 rounded-[32px] bg-[var(--blue-dark)] text-white shadow-xl">
-            <h3 className="text-xl font-bold mb-6">Audience Insights</h3>
-            <div className="space-y-6">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Peak Activity</p>
-                    <p className="font-bold">Tuesday, 4:00 PM - 8:00 PM</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Top Referral</p>
-                    <p className="font-bold">LinkedIn (42%)</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Top Device</p>
-                    <p className="font-bold">Desktop (64%)</p>
-                </div>
-            </div>
-            
-            <div className="mt-8 pt-8 border-t border-white/10">
-                <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Analytics Online</span>
-                </div>
-            </div>
-        </div>
+        <aside className="bg-[#232b32] text-white rounded-xl p-6 md:p-8">
+          <BarChart3 className="text-[#ffa07f] mb-6" size={31} strokeWidth={1.5} />
+          <h2 className="font-bold tracking-tight text-2xl mb-4">What these numbers mean</h2>
+          <p className="text-sm text-white/75 leading-relaxed mb-6">
+            This dashboard displays the counters already stored in Supabase. It does not claim visitor identities, session analytics, acquisition attribution or retention measurements.
+          </p>
+          <div className="space-y-4 pt-6 border-t border-white/15 text-xs leading-relaxed text-white/75">
+            <p><strong className="block text-white mb-1">Profile views</strong>Cumulative count from the portfolio's profile view operation.</p>
+            <p><strong className="block text-white mb-1">Project opens</strong>Recorded project view increments; not necessarily unique clicks.</p>
+            <p><strong className="block text-white mb-1">No invented growth</strong>Period-over-period changes require timestamped events, which this schema does not yet provide.</p>
+          </div>
+        </aside>
       </div>
     </div>
   );

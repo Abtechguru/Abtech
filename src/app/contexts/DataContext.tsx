@@ -102,6 +102,8 @@ interface DataContextType {
   messages: Message[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  authLoading: boolean;
+  dataError: string | null;
   user: User | null;
   addProject: (project: Omit<Project, 'id' | 'viewCount'>) => Promise<{ error: any }>;
   updateProject: (id: string, project: Partial<Project>) => Promise<{ error: any }>;
@@ -111,8 +113,9 @@ interface DataContextType {
   deleteService: (id: string) => Promise<{ error: any }>;
   incrementProjectView: (id: string) => Promise<void>;
   incrementProfileView: () => Promise<void>;
-  markMessageRead: (id: string) => Promise<void>;
-  deleteMessage: (id: string) => Promise<void>;
+  markMessageRead: (id: string) => Promise<{ error: any }>;
+  deleteMessage: (id: string) => Promise<{ error: any }>;
+  refreshMessages: () => Promise<{ error: any }>;
   setProfileData: (data: ProfileData) => Promise<{ error: any }>;
   setTeachingMedia: (media: MediaFile[]) => Promise<{ error: any }>;
   sendMessage: (msg: { name: string; email: string; subject: string; message: string }) => Promise<{ error: any }>;
@@ -122,6 +125,14 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// A public UUID, not a credential. It identifies the one portfolio owner.
+const configuredOwnerId = (import.meta.env.VITE_PORTFOLIO_OWNER_ID || "").trim().toLowerCase();
+const PORTFOLIO_OWNER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(configuredOwnerId)
+  ? configuredOwnerId : "";
+const isOwnerSession = (value: Session | null): value is Session =>
+  Boolean(PORTFOLIO_OWNER_ID && value?.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID);
+
+
 const DEFAULT_PROFILE: ProfileData = {
   fullName: "Lateef Abiodun",
   title: "AI-Powered Fullstack Developer & Expert Educator",
@@ -130,14 +141,14 @@ const DEFAULT_PROFILE: ProfileData = {
   phone: "07041514615",
   whatsapp: "2347041514615",
   bio: "Fullstack Engineer & Math Specialist crafting production-grade AI systems and empowering the next generation of engineers.",
-  github: "https://github.com/lateefabiodun",
-  linkedin: "https://linkedin.com/in/lateefabiodun",
-  behance: "https://behance.net/lateefabiodun",
-  website: "https://lateefabiodun.dev",
+  github: "https://github.com/Abtechguru",
+  linkedin: "",
+  behance: "",
+  website: "",
   viewCount: 0,
-  yearsExperience: "5+",
-  projectsDelivered: "50+",
-  activeUsers: "10K+",
+  yearsExperience: "",
+  projectsDelivered: "",
+  activeUsers: "",
   tutorDescription: "I am an accomplished mathematics, physics, and further mathematics teacher. With a rich background in education, I have cultivated a dynamic teaching approach that not only imparts knowledge but also sparks curiosity and critical thinking.\n\nMy qualifications include National Diploma in Agriculture and Bio Environmental Engineering and Degree in Electrical and electronics engineering, equipping me with the theoretical foundation and practical skills to deliver high-quality education.",
   tutorLink: "https://tutors.tuteria.com/profile/lateefafeez28",
   examExpert: "WAEC, JAMB, NECO, JUPEB, BECE, Cambridge Checkpoint",
@@ -157,49 +168,85 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
-      } else {
-        fetchAllData();
+    let active = true;
+    let requestVersion = 0;
+
+    const loadSession = async (candidate: Session | null) => {
+      const version = ++requestVersion;
+      let verified: Session | null = null;
+      if (isOwnerSession(candidate)) {
+        // getSession() may be backed by mutable local storage. Validate with the
+        // Supabase Auth service before granting access to the content studio.
+        try {
+          const { data, error } = await supabase.auth.getUser();
+          if (!error && data.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID) verified = candidate;
+        } catch (error) {
+          console.error("Unable to verify owner identity", error);
+        }
       }
+      if (!active || version !== requestVersion) return;
+      setSession(verified);
+      setAuthLoading(false);
+      if (verified) await fetchUserData(verified.user.id);
+      else await fetchAllData();
+    };
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (error) console.error("Unable to restore portfolio session", error);
+      void loadSession(error ? null : data.session);
+    }).catch(error => {
+      console.error("Portfolio session recovery failed", error);
+      void loadSession(null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
-      } else {
-        fetchAllData();
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "INITIAL_SESSION") return; // already read above
+      // Avoid invoking another Supabase auth request while the auth callback
+      // is executing. The auth client may still be processing its internal lock.
+      window.setTimeout(() => { if (active) void loadSession(nextSession); }, 0);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      requestVersion++;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchAllData = async () => {
+    setMessagesState([]);
     setIsLoading(true);
+    setDataError(null);
+    if (!PORTFOLIO_OWNER_ID) {
+      // Fail closed rather than selecting an arbitrary account when the owner is unknown.
+      setDataError("The portfolio owner has not been configured.");
+      setIsLoading(false);
+      return;
+    }
     try {
       const [
-        { data: profile },
-        { data: projectsData },
-        { data: servicesData },
-        { data: skillsData },
-        { data: testData },
-        { data: expData },
-        { data: teachingMediaData }
+        { data: profile, error: profileError },
+        { data: projectsData, error: projectsDataError },
+        { data: servicesData, error: servicesDataError },
+        { data: skillsData, error: skillsDataError },
+        { data: testData, error: testDataError },
+        { data: expData, error: expDataError },
+        { data: teachingMediaData, error: teachingMediaDataError }
       ] = await Promise.all([
-        supabase.from('profiles').select('*').limit(1).single(),
-        supabase.from('projects').select('*, media (*)').order('created_at', { ascending: false }),
-        supabase.from('services').select('*').order('display_order', { ascending: true }),
-        supabase.from('skills').select('*').order('display_order', { ascending: true }),
-        supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-        supabase.from('experience').select('*').order('display_order', { ascending: true }),
-        supabase.from('teaching_media').select('*').order('created_at', { ascending: false })
+        supabase.from('profiles').select('*').eq('id', PORTFOLIO_OWNER_ID).single(),
+        supabase.from('projects').select('*, media (*)').eq('user_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false }),
+        supabase.from('services').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('skills').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('testimonials').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false }),
+        supabase.from('experience').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('teaching_media').select('*').eq('profile_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false })
       ]);
+      const failedQueries = [profileError, projectsDataError, servicesDataError, skillsDataError, testDataError, expDataError, teachingMediaDataError].filter(Boolean);
+      if (failedQueries.length) setDataError("Some portfolio information could not be loaded. Review the database connection and permissions.");
 
       if (profile) {
         setProfileDataState({
@@ -216,9 +263,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           behance: profile.behance || "",
           website: profile.website || "",
           viewCount: profile.view_count || 0,
-          yearsExperience: profile.years_experience || "3+",
-          projectsDelivered: profile.projects_delivered || "50+",
-          activeUsers: profile.active_users || "10K+",
+          yearsExperience: profile.years_experience || "",
+          projectsDelivered: profile.projects_delivered || "",
+          activeUsers: profile.active_users || "",
           tutorDescription: profile.tutor_description || "",
           tutorLink: profile.tutor_link || "",
           examExpert: profile.exam_expert || "",
@@ -276,6 +323,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         })));
       }
     } catch (error) {
+      setDataError("Portfolio information could not be loaded. Please check the connection.");
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
@@ -284,16 +332,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     setIsLoading(true);
+    setDataError(null);
     try {
         const [
-          { data: profile },
-          { data: projectsData },
-          { data: servicesData },
-          { data: skillsData },
-          { data: testData },
-          { data: expData },
-          { data: messagesData },
-          { data: teachingMediaData }
+          { data: profile, error: profileError },
+          { data: projectsData, error: projectsDataError },
+          { data: servicesData, error: servicesDataError },
+          { data: skillsData, error: skillsDataError },
+          { data: testData, error: testDataError },
+          { data: expData, error: expDataError },
+          { data: messagesData, error: messagesDataError },
+          { data: teachingMediaData, error: teachingMediaDataError }
         ] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).single(),
           supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false }),
@@ -304,6 +353,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           supabase.from('messages').select('*').eq('to_user_id', userId).order('created_at', { ascending: false }),
           supabase.from('teaching_media').select('*').eq('profile_id', userId).order('created_at', { ascending: false })
         ]);
+      const failedQueries = [profileError, projectsDataError, servicesDataError, skillsDataError, testDataError, expDataError, messagesDataError, teachingMediaDataError].filter(Boolean);
+      if (failedQueries.length) setDataError("Some portfolio information could not be loaded. Review the database connection and permissions.");
 
         if (messagesData) {
             setMessagesState(messagesData.map((m: any) => ({
@@ -326,9 +377,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             behance: profile.behance || "",
             website: profile.website || "",
             viewCount: profile.view_count || 0,
-            yearsExperience: profile.years_experience || "3+",
-            projectsDelivered: profile.projects_delivered || "50+",
-            activeUsers: profile.active_users || "10K+",
+            yearsExperience: profile.years_experience || "",
+            projectsDelivered: profile.projects_delivered || "",
+            activeUsers: profile.active_users || "",
             tutorDescription: profile.tutor_description || "",
             tutorLink: profile.tutor_link || "",
             examExpert: profile.exam_expert || "",
@@ -379,7 +430,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
           })));
         }
+        if (teachingMediaData) {
+          setTeachingMediaState(teachingMediaData.map((media: any) => ({
+            id: media.id, type: media.type, url: media.url, name: media.name, size: media.size
+          })));
+        }
     } catch (error) {
+      setDataError("Portfolio information could not be loaded. Please check the connection.");
       console.error("Error fetching user data:", error);
     } finally {
       setIsLoading(false);
@@ -387,7 +444,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addProject = async (project: Omit<Project, 'id' | 'viewCount'>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { data: projectData, error: projectError } = await supabase
       .from('projects')
       .insert({
@@ -414,7 +471,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         name: m.name,
         size: m.size
       }));
-      await supabase.from('media').insert(mediaToInsert);
+      const { error: mediaError } = await supabase.from('media').insert(mediaToInsert);
+      if (mediaError) {
+        await supabase.from('projects').delete().eq('id', projectData.id).eq('user_id', PORTFOLIO_OWNER_ID);
+        return { error: mediaError };
+      }
     }
 
     // Faster partial refetch: only update projects list
@@ -446,7 +507,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProject = async (id: string, project: Partial<Project>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error: projectError } = await supabase
       .from('projects')
       .update({
@@ -460,21 +521,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         logo: project.logo,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id);
+      .eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
 
     if (projectError) return { error: projectError };
 
     if (project.media) {
-      await supabase.from('media').delete().eq('project_id', id);
-      if (project.media.length > 0) {
-        const mediaToInsert = project.media.map(m => ({
-          project_id: id,
-          type: m.type,
-          url: m.url,
-          name: m.name,
-          size: m.size
-        }));
-        await supabase.from('media').insert(mediaToInsert);
+      const { data: existingMedia, error: readError } = await supabase
+        .from("media").select("id,url").eq("project_id", id);
+      if (readError) return { error: readError };
+      const existing = existingMedia || [];
+      const wanted = new Set(project.media.map(file => file.url));
+      const oldUrls = new Set(existing.map(item => item.url));
+      const toAdd = project.media.filter(file => !oldUrls.has(file.url));
+      const toDelete = existing.filter(item => !wanted.has(item.url)).map(item => item.id);
+
+      // Insert replacements before deleting existing attachments. A failed insert
+      // never destroys an existing media gallery.
+      if (toAdd.length) {
+        const { error: insertError } = await supabase.from("media").insert(toAdd.map(file => ({
+          project_id: id, type: file.type, url: file.url, name: file.name, size: file.size
+        })));
+        if (insertError) return { error: insertError };
+      }
+      if (toDelete.length) {
+        const { error: deleteError } = await supabase.from("media").delete().in("id", toDelete).eq("project_id", id);
+        if (deleteError) return { error: deleteError };
       }
     }
 
@@ -507,12 +578,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteProject = async (id: string) => {
-    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from('projects').delete().eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) setProjectsState(projects.filter(p => p.id !== id));
     return { error };
   };
   const addService = async (service: Omit<Service, 'id'>) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error } = await supabase.from('services').insert({
       user_id: session.user.id,
       title: service.title,
@@ -530,12 +602,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateService = async (id: string, service: Partial<Service>) => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
     const { error } = await supabase.from('services').update({
       title: service.title,
       description: service.description,
       price: service.price,
       features: service.features
-    }).eq('id', id);
+    }).eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) {
         setServicesState(services.map(s => s.id === id ? { ...s, ...service } : s));
     }
@@ -543,7 +616,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteService = async (id: string) => {
-    const { error } = await supabase.from('services').delete().eq('id', id);
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from('services').delete().eq('id', id).eq('user_id', PORTFOLIO_OWNER_ID);
     if (!error) setServicesState(services.filter(s => s.id !== id));
     return { error };
   };
@@ -553,28 +627,42 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementProfileView = async () => {
-    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
-    if (profile) {
-      await supabase.rpc('increment_profile_view', { profile_id: profile.id });
-    }
+    if (!PORTFOLIO_OWNER_ID) return;
+    await supabase.rpc('increment_profile_view', { profile_id: PORTFOLIO_OWNER_ID });
   };
 
-  const markMessageRead = async (id: string) => {
-    const { error } = await supabase.from('messages').update({ is_read: true }).eq('id', id);
-    if (!error) {
-      setMessagesState(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
+  const refreshMessages = async (): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner can access messages.") };
+    const { data, error } = await supabase.from("messages").select("*")
+      .eq("to_user_id", PORTFOLIO_OWNER_ID).order("created_at", { ascending: false });
+    if (!error && data) {
+      setMessagesState(data.map((message: any) => ({
+        id: message.id, name: message.name, email: message.email,
+        subject: message.subject, message: message.message,
+        isRead: message.is_read, createdAt: message.created_at
+      })));
     }
+    return { error };
   };
 
-  const deleteMessage = async (id: string) => {
-    const { error } = await supabase.from('messages').delete().eq('id', id);
-    if (!error) {
-      setMessagesState(messages.filter(m => m.id !== id));
-    }
+  const markMessageRead = async (id: string): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from("messages").update({ is_read: true })
+      .eq("id", id).eq("to_user_id", PORTFOLIO_OWNER_ID);
+    if (!error) setMessagesState(current => current.map(message => message.id === id ? { ...message, isRead: true } : message));
+    return { error };
+  };
+
+  const deleteMessage = async (id: string): Promise<{ error: any }> => {
+    if (!isOwnerSession(session)) return { error: new Error("Not authorized.") };
+    const { error } = await supabase.from("messages").delete()
+      .eq("id", id).eq("to_user_id", PORTFOLIO_OWNER_ID);
+    if (!error) setMessagesState(current => current.filter(message => message.id !== id));
+    return { error };
   };
 
   const updateProfileData = async (data: ProfileData) => {
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may edit content.") };
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -608,25 +696,36 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setTeachingMedia = async (media: MediaFile[]) => {
-    if (!session) return { error: "Not authenticated" };
-    await supabase.from('teaching_media').delete().eq('profile_id', session.user.id);
-    const mediaToInsert = media.map(m => ({
-      profile_id: session.user.id,
-      type: m.type,
-      url: m.url,
-      name: m.name,
-      size: m.size
-    }));
-    const { error } = await supabase.from('teaching_media').insert(mediaToInsert);
-    if (!error) setTeachingMediaState(media);
-    return { error };
+    if (!isOwnerSession(session)) return { error: new Error("Only the portfolio owner may manage teaching media.") };
+    const { data: stored, error: readError } = await supabase.from("teaching_media")
+      .select("id,url").eq("profile_id", PORTFOLIO_OWNER_ID);
+    if (readError) return { error: readError };
+    const existing = stored || [];
+    const wantedUrls = new Set(media.map(item => item.url));
+    const existingUrls = new Set(existing.map(item => item.url));
+    const additions = media.filter(item => !existingUrls.has(item.url));
+    const removedIds = existing.filter(item => !wantedUrls.has(item.url)).map(item => item.id);
+    if (additions.length) {
+      const { error: insertError } = await supabase.from("teaching_media").insert(additions.map(item => ({
+        profile_id: PORTFOLIO_OWNER_ID,
+        type: item.type === "logo" ? "image" : item.type,
+        url: item.url, name: item.name, size: item.size
+      })));
+      if (insertError) return { error: insertError };
+    }
+    if (removedIds.length) {
+      const { error: deleteError } = await supabase.from("teaching_media")
+        .delete().in("id", removedIds).eq("profile_id", PORTFOLIO_OWNER_ID);
+      if (deleteError) return { error: deleteError };
+    }
+    setTeachingMediaState(media);
+    return { error: null };
   };
 
   const sendMessage = async (msg: { name: string; email: string; subject: string; message: string }) => {
-    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
-    if (!profile) return { error: "Recipient not found" };
+    if (!PORTFOLIO_OWNER_ID) return { error: new Error("The portfolio inbox is not configured for this deployment.") };
     return await supabase.from('messages').insert({
-      to_user_id: profile.id,
+      to_user_id: PORTFOLIO_OWNER_ID,
       name: msg.name,
       email: msg.email,
       subject: msg.subject,
@@ -635,22 +734,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    if (!PORTFOLIO_OWNER_ID) {
+      return { error: new Error("Portfolio owner access has not been configured.") };
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error };
+    if (!isOwnerSession(data.session)) {
+      await supabase.auth.signOut();
+      return { error: new Error("This account is not authorized to manage the portfolio.") };
+    }
+    const { data: identity, error: identityError } = await supabase.auth.getUser();
+    if (identityError || identity.user?.id?.toLowerCase() !== PORTFOLIO_OWNER_ID) {
+      await supabase.auth.signOut();
+      return { error: identityError || new Error("The portfolio owner identity could not be verified.") };
+    }
+    setIsLoading(true);
+    setSession(data.session);
+    return { error: null };
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setSession(null);
+    setMessagesState([]);
   };
 
   return (
     <DataContext.Provider value={{
       projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
-      isAuthenticated: !!session, isLoading, user: session?.user ?? null,
+      isAuthenticated: isOwnerSession(session), isLoading, authLoading, dataError, user: isOwnerSession(session) ? session?.user ?? null : null,
       addProject, updateProject, deleteProject,
       addService, updateService, deleteService,
       incrementProjectView, incrementProfileView,
-      markMessageRead, deleteMessage,
+      markMessageRead, deleteMessage, refreshMessages,
       setProfileData: updateProfileData, setTeachingMedia, sendMessage, login, logout
     }}>
       {children}
