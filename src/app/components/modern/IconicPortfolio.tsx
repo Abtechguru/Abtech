@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion, useReducedMotion } from "motion/react";
 import {
@@ -84,7 +84,7 @@ function safeUrl(value?: string) {
   }
 }
 
-function SectionLabel({ number, children }: { number: string; children: React.ReactNode }) {
+function SectionLabel({ number, children }: { number: string; children: ReactNode }) {
   return <div className="ip-section-label"><span>{number}</span><span className="ip-label-rule" /><span>{children}</span></div>;
 }
 
@@ -355,7 +355,12 @@ function ContactSection() {
 export function IconicPortfolio() {
   const { profileData, incrementProfileView } = useData();
   const reducedMotion = useReducedMotion();
-  useEffect(() => { void incrementProfileView(); }, [incrementProfileView]);
+  const viewCounted = useRef(false);
+  useEffect(() => {
+    if (viewCounted.current) return;
+    viewCounted.current = true;
+    void incrementProfileView();
+  }, [incrementProfileView]);
   const name = profileData.fullName || "Lateef Abiodun";
   return (
     <div className="ip-root" id="top">
