@@ -15,10 +15,6 @@ export function ModernTeaching() {
   
   const hasTeachingMedia = teachingMedia && teachingMedia.length > 0;
 
-  const sampleTestimonials = [
-    { name: "Mrs. Adebayo", role: "Parent", text: "Exceptional improvement in my son's physics grades within 3 months." },
-    { name: "John D.", role: "Student", text: "Math became my favorite subject thanks to Lateef's teaching style." }
-  ];
 
   return (
     <div className="bg-white min-h-screen selection:bg-[var(--blue-primary)] selection:text-white">
@@ -216,46 +212,44 @@ export function ModernTeaching() {
         </div>
       </section>
 
-      {/* Social Proof */}
+      {/* Teaching philosophy — no fabricated student testimonials or impact metrics */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16">
-                <div>
-                    <h2 className="text-4xl md:text-6xl font-black text-[var(--blue-dark)] tracking-tighter uppercase mb-6 leading-none italic">Voices of <br /><span className="text-[var(--blue-primary)] not-italic">Success</span></h2>
-                    <p className="text-xl text-[var(--muted-foreground)] font-medium mb-12">I've mentored over 50+ students across Nigeria and internationally, achieving consistent excellence in STEM subjects.</p>
-                    
-                    <div className="space-y-8">
-                        {sampleTestimonials.map((t, i) => (
-                            <div key={i} className="p-8 rounded-3xl bg-[var(--secondary)]/30 border border-[var(--border)] relative">
-                                <Quote className="absolute top-6 right-6 w-10 h-10 text-[var(--blue-primary)]/10" />
-                                <p className="text-lg font-medium italic mb-6 text-[var(--blue-dark)]">"{t.text}"</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-indigo-500/20" />
-                                    <div>
-                                        <p className="font-black text-sm text-[var(--blue-dark)] uppercase tracking-widest">{t.name}</p>
-                                        <p className="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-tighter">{t.role}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                
-                <div className="flex flex-col justify-center">
-                    <div className="p-12 rounded-[60px] bg-[var(--blue-primary)] text-white text-center">
-                        <MessageCircle className="w-16 h-16 mx-auto mb-8 text-white/50" />
-                        <h3 className="text-4xl font-black mb-4 uppercase italic tracking-tighter">Ready to Start?</h3>
-                        <p className="text-lg font-bold text-white/80 mb-10 max-w-sm mx-auto">Book a free consultation to discuss your child's academic goals and current challenges.</p>
-                        <a 
-                            href={profileData.calendlyLink || profileData.tutorLink || "#contact"} 
-                            target="_blank"
-                            className="inline-block px-12 py-6 bg-white text-[var(--blue-dark)] rounded-3xl font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-transform"
-                        >
-                            Hire Engr. Lateef
-                        </a>
-                    </div>
-                </div>
+          <div className="grid lg:grid-cols-2 gap-16">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-black text-[var(--blue-dark)] tracking-tighter uppercase mb-6 leading-none italic">
+                Learning with <span className="text-[var(--blue-primary)] not-italic">purpose</span>
+              </h2>
+              <p className="text-xl text-[var(--muted-foreground)] font-medium mb-10">
+                I help students build confidence in mathematics, physics, and technology through practice, clarity, and encouragement.
+              </p>
+              <div className="space-y-5">
+                {[
+                  ["Understand the foundations", "We make difficult concepts approachable before increasing complexity."],
+                  ["Practice with intention", "Each session prioritizes active problem-solving and clear feedback."],
+                  ["Build long-term confidence", "My aim is independent thinking, not short-term memorization."]
+                ].map(([title, description]) => (
+                  <div key={title} className="p-6 border border-[var(--border)] rounded-2xl bg-[var(--secondary)]/20">
+                    <h3 className="font-black text-lg text-[var(--blue-dark)] mb-2">{title}</h3>
+                    <p className="text-[var(--muted-foreground)] leading-relaxed">{description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+            <div className="flex flex-col justify-center">
+              <div className="p-12 rounded-[50px] bg-[var(--blue-primary)] text-white text-center">
+                <MessageCircle className="w-16 h-16 mx-auto mb-8 text-white/50" />
+                <h3 className="text-4xl font-black mb-4 uppercase italic tracking-tighter">Ready to learn?</h3>
+                <p className="text-lg font-bold text-white/80 mb-10 max-w-sm mx-auto">
+                  Let's discuss your learning goals and how a personalised approach can help.
+                </p>
+                <a href={profileData.calendlyLink || profileData.tutorLink || "/#contact"}
+                  className="inline-block px-12 py-6 bg-white text-[var(--blue-dark)] rounded-3xl font-black uppercase tracking-[0.1em] shadow-2xl hover:scale-105 transition-transform">
+                  Get in touch
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
