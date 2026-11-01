@@ -35,7 +35,7 @@ function RouteLoading({ isAdmin = false }: { isAdmin?: boolean }) {
 
 function AppContent() {
   const [currentPath, setCurrentPath] = useState<AppRoute>(resolveRoute);
-  const { isAuthenticated, isLoading, logout } = useData();
+  const { isAuthenticated, isLoading, authLoading, logout } = useData();
 
   useEffect(() => {
     const checkPath = () => setCurrentPath(resolveRoute());
@@ -61,7 +61,7 @@ function AppContent() {
 
   if (currentPath === "admin") {
     // Do not briefly display the login page while checking a valid owner session.
-    if (isLoading) return <RouteLoading isAdmin />;
+    if (authLoading || (isAuthenticated && isLoading)) return <RouteLoading isAdmin />;
     return (
       <Suspense fallback={<RouteLoading isAdmin />}>
         {isAuthenticated ? <AdminPage onLogout={handleLogout} /> : <AdminLogin onLoginSuccess={handleLoginSuccess} />}
