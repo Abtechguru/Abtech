@@ -38,7 +38,7 @@ export function AdminPage({ onLogout }: AdminPageProps) {
       case "settings":
         return <Settings />;
       default:
-        return <Overview />;
+        return <Overview onNavigate={setActiveTab} />;
     }
   };
 
