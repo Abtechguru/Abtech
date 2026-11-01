@@ -102,6 +102,7 @@ interface DataContextType {
   messages: Message[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  dataError: string | null;
   user: User | null;
   addProject: (project: Omit<Project, 'id' | 'viewCount'>) => Promise<{ error: any }>;
   updateProject: (id: string, project: Partial<Project>) => Promise<{ error: any }>;
@@ -166,6 +167,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -215,20 +217,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchAllData = async () => {
     setMessagesState([]);
     setIsLoading(true);
+    setDataError(null);
     if (!PORTFOLIO_OWNER_ID) {
       // Fail closed rather than selecting an arbitrary account when the owner is unknown.
+      setDataError("The portfolio owner has not been configured.");
       setIsLoading(false);
       return;
     }
     try {
       const [
-        { data: profile },
-        { data: projectsData },
-        { data: servicesData },
-        { data: skillsData },
-        { data: testData },
-        { data: expData },
-        { data: teachingMediaData }
+        { data: profile, error: profileError },
+        { data: projectsData, error: projectsDataError },
+        { data: servicesData, error: servicesDataError },
+        { data: skillsData, error: skillsDataError },
+        { data: testData, error: testDataError },
+        { data: expData, error: expDataError },
+        { data: teachingMediaData, error: teachingMediaDataError }
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', PORTFOLIO_OWNER_ID).single(),
         supabase.from('projects').select('*, media (*)').eq('user_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false }),
@@ -238,6 +242,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         supabase.from('experience').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
         supabase.from('teaching_media').select('*').eq('profile_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false })
       ]);
+      const failedQueries = [profileError, projectsDataError, servicesDataError, skillsDataError, testDataError, expDataError, teachingMediaDataError].filter(Boolean);
+      if (failedQueries.length) setDataError("Some portfolio information could not be loaded. Review the database connection and permissions.");
 
       if (profile) {
         setProfileDataState({
@@ -314,6 +320,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         })));
       }
     } catch (error) {
+      setDataError("Portfolio information could not be loaded. Please check the connection.");
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
@@ -322,16 +329,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     setIsLoading(true);
+    setDataError(null);
     try {
         const [
-          { data: profile },
-          { data: projectsData },
-          { data: servicesData },
-          { data: skillsData },
-          { data: testData },
-          { data: expData },
-          { data: messagesData },
-          { data: teachingMediaData }
+          { data: profile, error: profileError },
+          { data: projectsData, error: projectsDataError },
+          { data: servicesData, error: servicesDataError },
+          { data: skillsData, error: skillsDataError },
+          { data: testData, error: testDataError },
+          { data: expData, error: expDataError },
+          { data: messagesData, error: messagesDataError },
+          { data: teachingMediaData, error: teachingMediaDataError }
         ] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).single(),
           supabase.from('projects').select('*, media (*)').eq('user_id', userId).order('created_at', { ascending: false }),
@@ -342,6 +350,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           supabase.from('messages').select('*').eq('to_user_id', userId).order('created_at', { ascending: false }),
           supabase.from('teaching_media').select('*').eq('profile_id', userId).order('created_at', { ascending: false })
         ]);
+      const failedQueries = [profileError, projectsDataError, servicesDataError, skillsDataError, testDataError, expDataError, messagesDataError, teachingMediaDataError].filter(Boolean);
+      if (failedQueries.length) setDataError("Some portfolio information could not be loaded. Review the database connection and permissions.");
 
         if (messagesData) {
             setMessagesState(messagesData.map((m: any) => ({
@@ -417,7 +427,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             id: e.id, company: e.company, role: e.role, period: e.period, description: e.description
           })));
         }
+        if (teachingMediaData) {
+          setTeachingMediaState(teachingMediaData.map((media: any) => ({
+            id: media.id, type: media.type, url: media.url, name: media.name, size: media.size
+          })));
+        }
     } catch (error) {
+      setDataError("Portfolio information could not be loaded. Please check the connection.");
       console.error("Error fetching user data:", error);
     } finally {
       setIsLoading(false);
@@ -735,7 +751,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   return (
     <DataContext.Provider value={{
       projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
-      isAuthenticated: isOwnerSession(session), isLoading, user: isOwnerSession(session) ? session?.user ?? null : null,
+      isAuthenticated: isOwnerSession(session), isLoading, dataError, user: isOwnerSession(session) ? session?.user ?? null : null,
       addProject, updateProject, deleteProject,
       addService, updateService, deleteService,
       incrementProjectView, incrementProfileView,
