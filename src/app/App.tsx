@@ -64,12 +64,7 @@ function AppContent() {
     );
   }
 
-  return (
-    <>
-      <ModernPortfolio />
-      <WhatsAppFloat />
-    </>
-  );
+  return <ModernPortfolio />;
 }
 
 export default function App() {
