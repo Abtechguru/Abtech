@@ -9,8 +9,6 @@ import { Analytics } from "./Analytics";
 import { ServicesManager } from "./ServicesManager";
 import { TeachingManager } from "./TeachingManager";
 import { Settings } from "./Settings";
-import { AdminFloatingButton } from "./AdminFloatingButton";
-import { useData } from "../../contexts/DataContext";
 
 interface AdminPageProps {
   onLogout: () => void;
@@ -18,12 +16,11 @@ interface AdminPageProps {
 
 export function AdminPage({ onLogout }: AdminPageProps) {
   const [activeTab, setActiveTab] = useState("overview");
-  const { logout } = useData();
 
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
-        return <Overview />;
+        return <Overview onNavigate={setActiveTab} />;
       case "projects":
         return <ProjectsManager />;
       case "pricing":
@@ -47,10 +44,9 @@ export function AdminPage({ onLogout }: AdminPageProps) {
 
   return (
     <>
-      <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout}>
         {renderContent()}
       </AdminLayout>
-      <AdminFloatingButton />
     </>
   );
 }
