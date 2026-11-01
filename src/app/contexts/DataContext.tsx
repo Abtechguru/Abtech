@@ -102,6 +102,7 @@ interface DataContextType {
   messages: Message[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  authLoading: boolean;
   dataError: string | null;
   user: User | null;
   addProject: (project: Omit<Project, 'id' | 'viewCount'>) => Promise<{ error: any }>;
@@ -167,6 +168,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [profileData, setProfileDataState] = useState<ProfileData>(DEFAULT_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -188,6 +190,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       if (!active || version !== requestVersion) return;
       setSession(verified);
+      setAuthLoading(false);
       if (verified) await fetchUserData(verified.user.id);
       else await fetchAllData();
     };
@@ -744,14 +747,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setSession(null);
+    setMessagesState([]);
   };
 
   return (
     <DataContext.Provider value={{
       projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
-      isAuthenticated: isOwnerSession(session), isLoading, dataError, user: isOwnerSession(session) ? session?.user ?? null : null,
+      isAuthenticated: isOwnerSession(session), isLoading, authLoading, dataError, user: isOwnerSession(session) ? session?.user ?? null : null,
       addProject, updateProject, deleteProject,
       addService, updateService, deleteService,
       incrementProjectView, incrementProfileView,
