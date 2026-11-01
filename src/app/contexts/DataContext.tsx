@@ -122,6 +122,12 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// A public UUID, not a credential. It identifies the one portfolio owner.
+const PORTFOLIO_OWNER_ID = (import.meta.env.VITE_PORTFOLIO_OWNER_ID || "").trim().toLowerCase();
+const isOwnerSession = (value: Session | null): boolean =>
+  Boolean(PORTFOLIO_OWNER_ID && value?.user?.id?.toLowerCase() === PORTFOLIO_OWNER_ID);
+
+
 const DEFAULT_PROFILE: ProfileData = {
   fullName: "Lateef Abiodun",
   title: "AI-Powered Fullstack Developer & Expert Educator",
@@ -135,9 +141,9 @@ const DEFAULT_PROFILE: ProfileData = {
   behance: "https://behance.net/lateefabiodun",
   website: "https://lateefabiodun.dev",
   viewCount: 0,
-  yearsExperience: "5+",
-  projectsDelivered: "50+",
-  activeUsers: "10K+",
+  yearsExperience: "",
+  projectsDelivered: "",
+  activeUsers: "",
   tutorDescription: "I am an accomplished mathematics, physics, and further mathematics teacher. With a rich background in education, I have cultivated a dynamic teaching approach that not only imparts knowledge but also sparks curiosity and critical thinking.\n\nMy qualifications include National Diploma in Agriculture and Bio Environmental Engineering and Degree in Electrical and electronics engineering, equipping me with the theoretical foundation and practical skills to deliver high-quality education.",
   tutorLink: "https://tutors.tuteria.com/profile/lateefafeez28",
   examExpert: "WAEC, JAMB, NECO, JUPEB, BECE, Cambridge Checkpoint",
@@ -161,8 +167,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
+      if (isOwnerSession(session)) {
+        fetchUserData(session!.user.id);
       } else {
         fetchAllData();
       }
@@ -170,8 +176,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
+      if (isOwnerSession(session)) {
+        fetchUserData(session!.user.id);
       } else {
         fetchAllData();
       }
@@ -181,7 +187,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchAllData = async () => {
+    setMessagesState([]);
     setIsLoading(true);
+    if (!PORTFOLIO_OWNER_ID) {
+      // Fail closed rather than selecting an arbitrary account when the owner is unknown.
+      setIsLoading(false);
+      return;
+    }
     try {
       const [
         { data: profile },
@@ -192,13 +204,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         { data: expData },
         { data: teachingMediaData }
       ] = await Promise.all([
-        supabase.from('profiles').select('*').limit(1).single(),
-        supabase.from('projects').select('*, media (*)').order('created_at', { ascending: false }),
-        supabase.from('services').select('*').order('display_order', { ascending: true }),
-        supabase.from('skills').select('*').order('display_order', { ascending: true }),
-        supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-        supabase.from('experience').select('*').order('display_order', { ascending: true }),
-        supabase.from('teaching_media').select('*').order('created_at', { ascending: false })
+        supabase.from('profiles').select('*').eq('id', PORTFOLIO_OWNER_ID).single(),
+        supabase.from('projects').select('*, media (*)').eq('user_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false }),
+        supabase.from('services').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('skills').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('testimonials').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false }),
+        supabase.from('experience').select('*').eq('user_id', PORTFOLIO_OWNER_ID).order('display_order', { ascending: true }),
+        supabase.from('teaching_media').select('*').eq('profile_id', PORTFOLIO_OWNER_ID).order('created_at', { ascending: false })
       ]);
 
       if (profile) {
@@ -553,10 +565,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementProfileView = async () => {
-    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
-    if (profile) {
-      await supabase.rpc('increment_profile_view', { profile_id: profile.id });
-    }
+    if (!PORTFOLIO_OWNER_ID) return;
+    await supabase.rpc('increment_profile_view', { profile_id: PORTFOLIO_OWNER_ID });
   };
 
   const markMessageRead = async (id: string) => {
@@ -623,10 +633,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const sendMessage = async (msg: { name: string; email: string; subject: string; message: string }) => {
-    const { data: profile } = await supabase.from('profiles').select('id').limit(1).single();
-    if (!profile) return { error: "Recipient not found" };
+    if (!PORTFOLIO_OWNER_ID) return { error: new Error("The portfolio inbox is not configured for this deployment.") };
     return await supabase.from('messages').insert({
-      to_user_id: profile.id,
+      to_user_id: PORTFOLIO_OWNER_ID,
       name: msg.name,
       email: msg.email,
       subject: msg.subject,
@@ -635,7 +644,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    if (!PORTFOLIO_OWNER_ID) {
+      return { error: new Error("Portfolio owner access has not been configured.") };
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error };
+    if (!isOwnerSession(data.session)) {
+      await supabase.auth.signOut();
+      return { error: new Error("This account is not authorized to manage the portfolio.") };
+    }
+    return { error: null };
   };
 
   const logout = async () => {
@@ -646,7 +664,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   return (
     <DataContext.Provider value={{
       projects, services, skills, testimonials, experience, profileData, messages, teachingMedia,
-      isAuthenticated: !!session, isLoading, user: session?.user ?? null,
+      isAuthenticated: isOwnerSession(session), isLoading, user: isOwnerSession(session) ? session?.user ?? null : null,
       addProject, updateProject, deleteProject,
       addService, updateService, deleteService,
       incrementProjectView, incrementProfileView,
