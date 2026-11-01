@@ -6,12 +6,6 @@ import { AdminPage } from "./components/admin/AdminPage";
 import { AdminLogin } from "./components/admin/AdminLogin";
 import { WhatsAppFloat } from "./components/modern/WhatsAppFloat";
 import { DataProvider, useData } from "./contexts/DataContext";
-import { initErrorHandler } from "./utils/errorHandler";
-
-// Initialize error handler to suppress extension errors
-if (typeof window !== 'undefined') {
-  initErrorHandler();
-}
 
 type AppRoute = "portfolio" | "admin" | "teaching" | "case-study";
 
@@ -29,9 +23,6 @@ function AppContent() {
   const { isAuthenticated, logout } = useData();
 
   useEffect(() => {
-    // Initialize error handler early
-    initErrorHandler();
-
     const checkPath = () => setCurrentPath(resolveRoute());
 
     checkPath();
@@ -45,8 +36,8 @@ function AppContent() {
     setCurrentPath("admin");
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     window.history.pushState({}, "", "/");
     setCurrentPath("portfolio");
   };
