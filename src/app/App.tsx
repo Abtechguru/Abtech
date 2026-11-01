@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ModernPortfolio } from "./components/modern/ModernPortfolio";
+import { CaseStudyPage } from "./components/modern/CaseStudyPage";
 import { ModernTeaching } from "./components/modern/ModernTeaching";
 import { AdminPage } from "./components/admin/AdminPage";
 import { AdminLogin } from "./components/admin/AdminLogin";
@@ -12,13 +13,14 @@ if (typeof window !== 'undefined') {
   initErrorHandler();
 }
 
-type AppRoute = "portfolio" | "admin" | "teaching";
+type AppRoute = "portfolio" | "admin" | "teaching" | "case-study";
 
 function resolveRoute(): AppRoute {
   if (typeof window === "undefined") return "portfolio";
   const pathname = window.location.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return "admin";
   if (pathname === "/teaching" || pathname.startsWith("/teaching/")) return "teaching";
+  if (pathname.startsWith("/work/")) return "case-study";
   return "portfolio";
 }
 
@@ -55,6 +57,8 @@ function AppContent() {
     }
     return <AdminPage onLogout={handleLogout} />;
   }
+
+  if (currentPath === "case-study") return <CaseStudyPage />;
 
   if (currentPath === "teaching") {
     return (
