@@ -29,7 +29,7 @@ test("featured case study slugs remain distinct and reachable", () => {
   assert.equal(new Set(slugs).size, slugs.length);
   const app = source("src/app/App.tsx");
   assert.match(app, /pathname\.startsWith\("\/work\/"\)/);
-  assert.match(app, /return <CaseStudyPage/);
+  assert.match(app, /<CaseStudyPage\s*\/>/);
   const publicHome = source("src/app/components/modern/IconicPortfolio.tsx");
   assert.match(publicHome, /"\/work\/" \+ project\.slug/);
 });
